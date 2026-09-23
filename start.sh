@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+# Auf dem Pi ohne Debug-Modus starten (Vollbild, kein Debug-Panel).
+# Überschreibbar mit: SLOT_DEBUG=1 ./start.sh
+export SLOT_DEBUG="${SLOT_DEBUG:-0}"
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 URL="http://localhost:5000"
 VENV_PY="$DIR/venv/bin/python"

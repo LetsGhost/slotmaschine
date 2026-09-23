@@ -32,6 +32,25 @@ python app.py
 Server läuft auf `http://localhost:5000` und liefert dort auch das Frontend
 aus.
 
+**Debug-Modus:** über die Umgebungsvariable `SLOT_DEBUG` steuerbar
+(`SLOT_DEBUG=1` an, `SLOT_DEBUG=0` aus). Ist sie nicht gesetzt, ist der
+Debug-Modus automatisch an, wenn GPIO im Mock-Modus läuft (PC), und aus auf
+dem Pi mit echter Hardware. Im Debug-Modus wird die Stage in Originalgröße
+(800x480) mit Debug-Panel darunter angezeigt, sonst ohne Panel und auf den
+gesamten Viewport skaliert (Seitenverhältnis bleibt erhalten).
+
+```bash
+SLOT_DEBUG=0 python backend/app.py   # Vollbild-Ansicht wie auf dem Pi testen
+SLOT_DEBUG=1 ./start.sh              # Debug-Panel auch auf dem Pi (start.sh setzt sonst SLOT_DEBUG=0)
+```
+
+Unter Windows (PowerShell) wird die Variable so gesetzt:
+
+```powershell
+$env:SLOT_DEBUG="0"; python backend/app.py
+Remove-Item Env:SLOT_DEBUG            # wieder auf Automatik zurücksetzen
+```
+
 ## Testen
 
 **Backend (Phase 1, ohne Frontend):**

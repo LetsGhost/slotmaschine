@@ -39,4 +39,16 @@ MULTIPLIER_CONFIG_FILE = "multiplier_config.json"
 
 GPIO_LEVER_PIN = 17
 
+# Debug-Modus (Debug-Panel sichtbar, Stage in Originalgröße statt auf den
+# Viewport skaliert). Gesteuert über die Umgebungsvariable SLOT_DEBUG
+# (1/true/yes/on bzw. 0/false/no/off). Nicht gesetzt => automatisch an, wenn
+# GPIO im Mock-Modus läuft (PC), aus auf dem Pi mit echter Hardware.
+DEBUG_ENV_VAR = "SLOT_DEBUG"
+
+# VORÜBERGEHEND: Tippen auf den Bildschirm löst einen Spin aus (auch mit echter
+# GPIO-Hardware), solange der Hebel noch nicht verbaut ist. Zum Entfernen auf
+# False setzen (oder Handler "tap_pull_lever" in app.py + Listener in
+# frontend/js/socket.js löschen).
+TAP_TO_SPIN = True
+
 CREDITS_FILE = "credits.json"

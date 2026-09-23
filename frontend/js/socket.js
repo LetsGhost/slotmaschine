@@ -104,13 +104,24 @@ socket.on("error", (data) => {
   console.warn("Server error:", data.message);
 });
 
+function pullLever(socketEvent) {
+  resetIdleTimer();
+  showEvent("lever_pull");
+  socket.emit(socketEvent);
+}
+
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
     e.preventDefault();
-    resetIdleTimer();
-    showEvent("lever_pull");
-    socket.emit("debug_pull_lever");
+    pullLever("debug_pull_lever");
   }
+});
+
+// VORÜBERGEHEND: Tippen/Klicken auf die Stage löst einen Spin aus, solange der
+// Hebel noch nicht verbaut ist (serverseitig abschaltbar über
+// config.TAP_TO_SPIN in backend/config.py).
+document.getElementById("stage")?.addEventListener("pointerdown", () => {
+  pullLever("tap_pull_lever");
 });
 
 document.getElementById("debug-add-credits")?.addEventListener("click", () => {

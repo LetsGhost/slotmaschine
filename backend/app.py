@@ -2,7 +2,7 @@
 
 import os
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, Response, jsonify
 from flask_socketio import SocketIO
 
 import config
@@ -27,9 +27,27 @@ game = GameState(credit_manager, emit_event)
 gpio = GPIOHandler(config.GPIO_LEVER_PIN, game.pull_lever)
 
 
+def _resolve_debug_mode() -> bool:
+    raw = os.environ.get(config.DEBUG_ENV_VAR, "").strip().lower()
+    if raw in ("1", "true", "yes", "on"):
+        return True
+    if raw in ("0", "false", "no", "off"):
+        return False
+    return gpio.is_mock
+
+
+DEBUG_MODE = _resolve_debug_mode()
+
+
 @app.route("/")
 def index():
-    return send_from_directory(FRONTEND_DIR, "index.html")
+    # Debug-Modus als Klasse am <body> mitgeben, damit CSS/JS schon beim
+    # ersten Rendern wissen, ob Debug-Panel oder Vollbild-Skalierung aktiv ist.
+    with open(os.path.join(FRONTEND_DIR, "index.html"), encoding="utf-8") as f:
+        html = f.read()
+    if DEBUG_MODE:
+        html = html.replace("<body>", '<body class="debug-mode">', 1)
+    return Response(html, mimetype="text/html")
 
 
 @app.route("/debug/pull", methods=["POST"])
@@ -56,6 +74,13 @@ def handle_connect():
 def handle_debug_pull_lever():
     if gpio.is_mock:
         gpio.trigger_mock()
+
+
+# VORÜBERGEHEND: Spin per Bildschirm-Tipp (siehe config.TAP_TO_SPIN).
+@socketio.on("tap_pull_lever")
+def handle_tap_pull_lever():
+    if config.TAP_TO_SPIN:
+        game.pull_lever()
 
 
 @socketio.on("debug_add_credits")

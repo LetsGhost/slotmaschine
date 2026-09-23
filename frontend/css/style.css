@@ -20,6 +20,28 @@ body {
   background: #111;
 }
 
+/* Außerhalb des Debug-Modus füllt die Stage den gesamten Viewport: Sie bleibt
+   intern 800x480 (alle Positionen in px), wird aber per transform uniform auf
+   die Viewportgröße skaliert (--stage-scale setzt main.js) und zentriert. */
+body:not(.debug-mode) #stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+}
+
+body:not(.debug-mode) #debug-panel {
+  display: none;
+}
+
+#stage {
+  /* Kein Doppeltipp-Zoom/Textauswahl beim Tippen auf den Touchscreen */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 #frame {
   position: absolute;
   top: 0;

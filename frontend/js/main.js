@@ -2,6 +2,7 @@ import { init as initReels } from "./reels.js";
 import { loadEventMediaMap, showEvent, getEventNames, isPoolEvent } from "./effects.js";
 import { loadMultiplierConfig } from "./multipliers.js";
 import { preloadSounds } from "./sound.js";
+import { DISPLAY } from "./config.js";
 import "./socket.js";
 
 // Mindestdauer des Ladescreens (Book-of-Ra-Logo) beim Seitenaufruf - rein für
@@ -17,6 +18,22 @@ function hideLoadingScreen() {
   if (!loadingScreen) return;
   loadingScreen.addEventListener("transitionend", () => loadingScreen.remove(), { once: true });
   loadingScreen.classList.add("hidden");
+}
+
+// Debug-Modus setzt der Server als Klasse am <body> (Umgebungsvariable
+// SLOT_DEBUG, siehe backend/app.py).
+const DEBUG_MODE = document.body.classList.contains("debug-mode");
+
+// Außerhalb des Debug-Modus die 800x480-Stage uniform auf den gesamten
+// Viewport skalieren (Kiosk-Browser auf dem Pi), siehe style.css.
+function fitStageToViewport() {
+  const scale = Math.min(window.innerWidth / DISPLAY.width, window.innerHeight / DISPLAY.height);
+  document.documentElement.style.setProperty("--stage-scale", String(scale));
+}
+
+if (!DEBUG_MODE) {
+  fitStageToViewport();
+  window.addEventListener("resize", fitStageToViewport);
 }
 
 function buildDebugPanel() {
@@ -38,7 +55,9 @@ async function bootstrap() {
   const start = performance.now();
 
   await Promise.all([initReels(), loadEventMediaMap(), loadMultiplierConfig(), preloadSounds()]);
-  buildDebugPanel();
+  if (DEBUG_MODE) {
+    buildDebugPanel();
+  }
 
   const remaining = MIN_LOADING_SCREEN_MS - (performance.now() - start);
   if (remaining > 0) {
