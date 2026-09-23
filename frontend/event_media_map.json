@@ -13,7 +13,7 @@
     "anim_pool": [
       {
         "type": "image",
-        "src": "assets/overlays/oleg_2.jpg",
+        "src": "assets/overlays/oleg_2.JPG",
         "anim": "coin_rain_reveal",
         "coin_src": "assets/overlays/coin_placeholder.svg",
         "coin_count": 150,

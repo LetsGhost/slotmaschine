@@ -290,10 +290,10 @@ Vollständig ohne Codeänderung konfigurierbar:
   weiterhin. Siehe `anim_pool_demo` als Beispiel.
 
   **Gewinnbetrag:** Bei `win_small` und `win_jackpot` wird der ausgezahlte
-  Betrag am unteren Rand des Bildes der gewählten Variante eingeblendet und
-  bewegt sich mit deren `anim` mit. Optional pro Variante: `amount_format`
-  (Platzhalter `{amount}`, Default `"+{amount}"`), `amount_bottom_px`
-  (Abstand zum unteren Bildrand, Default 10), `amount_font_size_px`
+  Betrag - egal welche Variante/`anim` gewählt wurde - fest am unteren
+  Bildschirmrand eingeblendet, solange die Animation läuft. Optional pro
+  Variante: `amount_format` (Platzhalter `{amount}`, Default `"+{amount}"`),
+  `amount_bottom_px` (Abstand zum unteren Bildschirmrand, Default 10), `amount_font_size_px`
   (Default 48), `amount_color` (Default `#ffd700`).
 
   **Extra-Animation während des Spinnens:** Das Event `spin_animation`
