@@ -13,6 +13,11 @@ fi
 # Überschreibbar mit: SLOT_DEBUG=1 ./start.sh
 export SLOT_DEBUG="${SLOT_DEBUG:-0}"
 
+# Drehung des Bildschirms unter cage (Pi OS Lite): normal, 90, 180 oder 270.
+# Wird hochkant/falsch herum angezeigt -> anderen Wert probieren.
+# Braucht wlr-randr (sudo apt install wlr-randr).
+SLOT_ROTATION="${SLOT_ROTATION:-90}"
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 URL="http://localhost:5000"
 VENV_PY="$DIR/venv/bin/python"
@@ -69,7 +74,19 @@ elif command -v cage >/dev/null 2>&1; then
     echo "(Einrichtung siehe deploy/slotmachine-kiosk.service)" >&2
     exit 1
   fi
-  cage -- "$BROWSER" "${BROWSER_FLAGS[@]}" --ozone-platform=wayland "$URL"
+  if [ "$SLOT_ROTATION" != "normal" ] && ! command -v wlr-randr >/dev/null 2>&1; then
+    echo "wlr-randr fehlt - Bildschirm wird nicht gedreht (sudo apt install wlr-randr)." >&2
+  fi
+  # Innerhalb von cage erst alle Ausgaben drehen, dann Chromium starten.
+  cage -- bash -c '
+    rotation="$1"; shift
+    if [ "$rotation" != "normal" ] && command -v wlr-randr >/dev/null 2>&1; then
+      for output in $(wlr-randr | grep -E "^[^ ]" | cut -d" " -f1); do
+        wlr-randr --output "$output" --transform "$rotation"
+      done
+    fi
+    exec "$@"
+  ' _ "$SLOT_ROTATION" "$BROWSER" "${BROWSER_FLAGS[@]}" --ozone-platform=wayland "$URL"
 else
   echo "Keine grafische Oberfläche gefunden. Auf Pi OS Lite cage installieren:" >&2
   echo "  sudo apt install cage" >&2

@@ -50,6 +50,9 @@ Das Script braucht eine aktive Konsolen-Session auf dem Pi, per SSH oder mit
 `sudo` klappt es nicht. Für den Betrieb (und Autostart beim Booten) den
 Service aus `deploy/slotmachine-kiosk.service` einrichten, Anleitung steht in
 der Datei.
+Die Bildschirm-Drehung steuert `SLOT_ROTATION` (`normal`, `90`, `180`,
+`270`; Standard `90`, im Service als `Environment=` gesetzt, braucht
+`sudo apt install wlr-randr`).
 
 Unter Windows (PowerShell) wird die Variable so gesetzt:
 

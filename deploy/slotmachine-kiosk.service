@@ -22,6 +22,8 @@ ConditionPathExists=/dev/tty1
 Type=simple
 User=admin
 WorkingDirectory=/home/admin/slotmaschine
+# Bildschirm-Drehung: normal, 90, 180 oder 270 (siehe start.sh)
+Environment=SLOT_ROTATION=90
 ExecStart=/home/admin/slotmaschine/start.sh
 Restart=always
 RestartSec=3
