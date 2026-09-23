@@ -1,0 +1,42 @@
+# systemd-Service: startet start.sh (Backend + Chromium in cage) beim Booten
+# als echte Login-Session auf tty1 - so bekommt cage Bildschirm-/Touch-Zugriff
+# und XDG_RUNTIME_DIR, ohne dass jemand angemeldet sein muss.
+#
+# Installation (User/Pfad unten ggf. anpassen):
+#   sudo cp deploy/slotmachine-kiosk.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now slotmachine-kiosk.service
+# Logs:   journalctl -u slotmachine-kiosk.service -f
+# Stoppen: sudo systemctl stop slotmachine-kiosk.service
+
+[Unit]
+Description=Slotmaschine Kiosk (Backend + Chromium in cage)
+After=systemd-user-sessions.service plymouth-quit-wait.service network-online.target
+Wants=network-online.target
+# tty1 gehört dem Kiosk statt der normalen Login-Konsole
+Conflicts=getty@tty1.service
+After=getty@tty1.service
+ConditionPathExists=/dev/tty1
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin/slotmaschine
+ExecStart=/home/admin/slotmaschine/start.sh
+Restart=always
+RestartSec=3
+
+# Login-Session auf tty1 (liefert logind-Seat + XDG_RUNTIME_DIR für cage)
+PAMName=login
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty1
+UtmpMode=user
+
+[Install]
+WantedBy=multi-user.target

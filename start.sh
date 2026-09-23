@@ -4,6 +4,11 @@
 
 set -euo pipefail
 
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Bitte nicht mit sudo/als root starten (cage/Chromium brauchen eine normale User-Session)." >&2
+  exit 1
+fi
+
 # Auf dem Pi ohne Debug-Modus starten (Vollbild, kein Debug-Panel).
 # Überschreibbar mit: SLOT_DEBUG=1 ./start.sh
 export SLOT_DEBUG="${SLOT_DEBUG:-0}"
@@ -56,7 +61,14 @@ if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
   "$BROWSER" "${BROWSER_FLAGS[@]}" "$URL"
 elif command -v cage >/dev/null 2>&1; then
   # Pi OS Lite ohne Desktop: Chromium im Wayland-Kiosk-Compositor cage starten.
-  # Muss direkt an der Konsole des Pi (TTY) laufen, nicht per SSH.
+  # Braucht eine aktive Konsolen-Session (am Pi auf tty1 angemeldet oder
+  # deploy/slotmachine-kiosk.service) - per SSH gibt es keinen Bildschirm-Zugriff.
+  if [ -n "${SSH_CONNECTION:-}" ]; then
+    echo "Per SSH kann cage den Bildschirm nicht übernehmen. Stattdessen:" >&2
+    echo "  sudo systemctl restart slotmachine-kiosk.service" >&2
+    echo "(Einrichtung siehe deploy/slotmachine-kiosk.service)" >&2
+    exit 1
+  fi
   cage -- "$BROWSER" "${BROWSER_FLAGS[@]}" --ozone-platform=wayland "$URL"
 else
   echo "Keine grafische Oberfläche gefunden. Auf Pi OS Lite cage installieren:" >&2

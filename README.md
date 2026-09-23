@@ -46,8 +46,10 @@ SLOT_DEBUG=1 ./start.sh              # Debug-Panel auch auf dem Pi (start.sh set
 
 **Pi OS Lite (ohne Desktop):** `start.sh` startet Chromium über den
 Wayland-Kiosk-Compositor `cage` (`sudo apt install cage chromium-browser`).
-Das Script muss direkt an der Konsole des Pi laufen (Tastatur/Monitor oder
-Autologin auf tty1), nicht über SSH - dort gibt es keinen Bildschirm-Zugriff.
+Das Script braucht eine aktive Konsolen-Session auf dem Pi, per SSH oder mit
+`sudo` klappt es nicht. Für den Betrieb (und Autostart beim Booten) den
+Service aus `deploy/slotmachine-kiosk.service` einrichten, Anleitung steht in
+der Datei.
 
 Unter Windows (PowerShell) wird die Variable so gesetzt:
 

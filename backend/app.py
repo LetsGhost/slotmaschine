@@ -102,4 +102,6 @@ def handle_debug_set_multiplier_chance(data=None):
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
+    # Flask-Debug (Auto-Reloader mit zweitem Prozess) nur im Debug-Modus - sonst
+    # würde der Reloader u.a. den GPIO-Pin doppelt belegen.
+    socketio.run(app, host="0.0.0.0", port=5000, debug=DEBUG_MODE, allow_unsafe_werkzeug=True)
