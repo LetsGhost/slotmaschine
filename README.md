@@ -282,10 +282,19 @@ Vollständig ohne Codeänderung konfigurierbar:
   `muzzle_flash` (kurzer weißer Blitz beim Treffer, Default `true`). Siehe
   `sniper_count_demo` als Beispiel (fester Wert `3`).
 
-  **Zufalls-Pool:** Statt eines einzelnen Objekts kann ein Event-Wert
-  auch ein Array mehrerer Varianten sein - bei jedem `showEvent()`-Aufruf
-  wird dann zufällig eine Variante gewählt (optional gewichtet über
-  `"weight"`, Default 1). Siehe `anim_pool_demo` als Beispiel.
+  **Zufalls-Pool:** Alle Spiel-Events (außer den `*_demo`-Einträgen)
+  sind als `{ "anim_pool": [ ... ] }` angelegt - bei jedem `showEvent()`-Aufruf wird zufällig eine Variante
+  aus dem Pool gewählt (optional gewichtet über `"weight"`, Default 1).
+  Für weitere Animationen einfach Einträge im Pool ergänzen. Ältere
+  Schreibweisen (einzelnes Objekt oder reines Array) funktionieren
+  weiterhin. Siehe `anim_pool_demo` als Beispiel.
+
+  **Gewinnbetrag:** Bei `win_small` und `win_jackpot` wird der ausgezahlte
+  Betrag am unteren Rand des Bildes der gewählten Variante eingeblendet und
+  bewegt sich mit deren `anim` mit. Optional pro Variante: `amount_format`
+  (Platzhalter `{amount}`, Default `"+{amount}"`), `amount_bottom_px`
+  (Abstand zum unteren Bildrand, Default 10), `amount_font_size_px`
+  (Default 48), `amount_color` (Default `#ffd700`).
 
   **Extra-Animation während des Spinnens:** Das Event `spin_animation`
   (ebenfalls ein Pool, aktuell mit `sausage_knife` befüllt - beliebig um

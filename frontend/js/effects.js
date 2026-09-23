@@ -89,13 +89,24 @@ export function getEventNames() {
 // Ein Event kann in event_media_map.json statt eines einzelnen Eintrags ein Array
 // von Varianten haben - bei jedem showEvent()-Aufruf wird dann zufällig eine davon
 // gewählt (optional gewichtet über "weight", Default-Gewicht 1).
+// Alternativ als Objekt mit "anim_pool": [ ... ] schreibbar - gleiches Verhalten.
+function getPool(eventName) {
+  const raw = mediaMap[eventName];
+  if (Array.isArray(raw)) return raw;
+  if (raw && Array.isArray(raw.anim_pool)) return raw.anim_pool;
+  return null;
+}
+
+// true nur, wenn wirklich zwischen mehreren Varianten gewählt wird.
 export function isPoolEvent(eventName) {
-  return Array.isArray(mediaMap[eventName]);
+  const pool = getPool(eventName);
+  return pool !== null && pool.length > 1;
 }
 
 function pickVariant(eventName) {
-  const raw = mediaMap[eventName];
-  if (!Array.isArray(raw)) return raw;
+  const raw = getPool(eventName);
+  if (!raw) return mediaMap[eventName];
+  if (raw.length === 0) return undefined;
   const total = raw.reduce((sum, v) => sum + (v.weight ?? 1), 0);
   let roll = Math.random() * total;
   for (const variant of raw) {
@@ -115,6 +126,10 @@ function pickVariant(eventName) {
 // braucht, um sich an den konkreten Anlass anzupassen - z.B. übergibt
 // showEventSequence hier den getroffenen Multiplikator-Wert, damit "anim":
 // "sniper_count" weiß, wie oft geschossen werden soll (siehe runSniperCount).
+// Enthält context ein "amount" (z.B. Gewinnbetrag bei win_small/win_jackpot),
+// wird er am unteren Rand des Bildes eingeblendet: Bild und Betrag stecken dann
+// in einem gemeinsamen Container, den die "anim" der gewählten Variante bewegt -
+// der Betrag fliegt/bounct/dreht also mit dem Bild mit (siehe createAmountLabel).
 export function showEvent(eventName, { onComplete, context } = {}) {
   const entry = pickVariant(eventName);
   if (!entry) {
@@ -126,23 +141,38 @@ export function showEvent(eventName, { onComplete, context } = {}) {
   clearEvent(eventName);
 
   const pos = entry.position || { top: 0, left: 0, width: 800, height: 480 };
-  let el;
+  let media;
 
   if (entry.type === "video") {
-    el = document.createElement("video");
-    el.src = entry.src;
-    el.autoplay = true;
-    el.muted = true;
-    el.playsInline = true;
-    if (!entry.duration_ms) {
-      el.addEventListener("ended", () => {
-        el.remove();
-        onComplete?.();
-      });
-    }
+    media = document.createElement("video");
+    media.src = entry.src;
+    media.autoplay = true;
+    media.muted = true;
+    media.playsInline = true;
   } else {
-    el = document.createElement("img");
-    el.src = entry.src;
+    media = document.createElement("img");
+    media.src = entry.src;
+  }
+
+  // Ohne Betrag ist das Medium selbst das animierte Element, mit Betrag der
+  // Container um Medium + Betrag-Text.
+  let el = media;
+  if (context?.amount != null) {
+    el = document.createElement("div");
+    media.style.position = "absolute";
+    media.style.inset = "0";
+    media.style.width = "100%";
+    media.style.height = "100%";
+    media.style.objectFit = "contain";
+    el.appendChild(media);
+    el.appendChild(createAmountLabel(entry, context.amount));
+  }
+
+  if (entry.type === "video" && !entry.duration_ms) {
+    media.addEventListener("ended", () => {
+      el.remove();
+      onComplete?.();
+    });
   }
 
   el.dataset.event = eventName;
@@ -194,6 +224,26 @@ export function showEvent(eventName, { onComplete, context } = {}) {
     // Overlay (z.B. idle_attract), das extern per clearEvent() entfernt wird.
     onComplete?.();
   }
+}
+
+// Betrag-Text am unteren Rand des Bildes. Optional pro Variante konfigurierbar:
+// "amount_format" (Platzhalter {amount}, Default "+{amount}"),
+// "amount_bottom_px" (Abstand zum unteren Bildrand, Default 10),
+// "amount_font_size_px" (Default 48), "amount_color" (Default "#ffd700").
+function createAmountLabel(entry, amount) {
+  const label = document.createElement("div");
+  label.textContent = (entry.amount_format ?? "+{amount}").replace("{amount}", amount);
+  label.style.position = "absolute";
+  label.style.left = "0";
+  label.style.right = "0";
+  label.style.bottom = `${entry.amount_bottom_px ?? 10}px`;
+  label.style.textAlign = "center";
+  label.style.fontSize = `${entry.amount_font_size_px ?? 48}px`;
+  label.style.fontWeight = "bold";
+  label.style.lineHeight = "1";
+  label.style.color = entry.amount_color ?? "#ffd700";
+  label.style.textShadow = "0 0 10px #000, 0 0 4px #000";
+  return label;
 }
 
 function runFlyAnimation(eventName, el, entry, anim, onComplete) {
@@ -522,7 +572,8 @@ function runChestReveal(eventName, chestEl, entry, pos, onComplete) {
     setTimeout(() => {
       // Öffnen: kurzes Wackeln, optional Sprite-Wechsel auf die offene Kiste.
       if (entry.chest_open_src) {
-        chestEl.src = entry.chest_open_src;
+        // chestEl kann ein Container (Bild + Betrag) sein, siehe showEvent.
+        (chestEl.querySelector("img") || chestEl).src = entry.chest_open_src;
       }
       const openPlayer = chestEl.animate(
         [

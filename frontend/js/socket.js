@@ -21,11 +21,12 @@ function revealPendingPayout() {
   const data = pendingPayout;
   pendingPayout = null;
   if (!data || data.amount <= 0) return;
+  const context = { amount: data.amount };
   if (data.amount >= JACKPOT_THRESHOLD) {
-    showEvent("win_jackpot");
+    showEvent("win_jackpot", { context });
     playSound("win_jackpot");
   } else {
-    showEvent("win_small");
+    showEvent("win_small", { context });
     playSound("win_small");
   }
 }
