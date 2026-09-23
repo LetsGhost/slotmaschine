@@ -1,0 +1,137 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+#stage {
+  width: 800px;
+  height: 480px;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  background: #111;
+}
+
+#frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 480px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#reels {
+  position: absolute;
+  z-index: 2;
+}
+
+#overlay-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 480px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+#overlay-layer img,
+#overlay-layer video {
+  position: absolute;
+}
+
+#credits-display {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 4;
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 0 4px #000;
+}
+
+#debug-panel {
+  max-width: 800px;
+  margin: 10px auto;
+  color: #ccc;
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+#debug-panel button {
+  cursor: pointer;
+}
+
+#debug-panel label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#loading-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 480px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: radial-gradient(circle at center, #3a1c05 0%, #0a0500 75%);
+  transition: opacity 0.5s ease;
+}
+
+#loading-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#loading-logo {
+  width: 380px;
+  max-width: 70%;
+  border-radius: 10px;
+  box-shadow: 0 0 50px rgba(255, 170, 0, 0.55);
+  animation: loading-pulse 1.6s ease-in-out infinite;
+}
+
+#loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 200, 120, 0.25);
+  border-top-color: #ffb300;
+  border-radius: 50%;
+  animation: loading-spin 0.9s linear infinite;
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

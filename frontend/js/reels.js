@@ -1,0 +1,215 @@
+import { REEL_WINDOW, SYMBOL_ASSETS, SYMBOLS, GRID_COLS, GRID_ROWS, PAYLINES } from "./config.js";
+
+const SLOT_WIDTH = REEL_WINDOW.width / GRID_COLS;
+const SLOT_HEIGHT = REEL_WINDOW.height / GRID_ROWS;
+const SPIN_SPEED_PX_PER_MS = 0.9;
+const STOP_STAGGER_MS = 250;
+
+const canvas = document.getElementById("reels");
+const ctx = canvas.getContext("2d");
+
+canvas.style.top = `${REEL_WINDOW.top}px`;
+canvas.style.left = `${REEL_WINDOW.left}px`;
+canvas.width = REEL_WINDOW.width;
+canvas.height = REEL_WINDOW.height;
+
+const images = {};
+
+function loadImages() {
+  const entries = Object.entries(SYMBOL_ASSETS);
+  return Promise.all(
+    entries.map(
+      ([name, src]) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = resolve; // fehlendes Asset -> Platzhalter beim Zeichnen
+          img.src = src;
+          images[name] = img;
+        })
+    )
+  );
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Langer gemischter Symbolstreifen zum Durchscrollen einer Spalte beim Spinnen.
+function buildSpinStrip() {
+  const strip = [];
+  for (let i = 0; i < 4; i += 1) {
+    strip.push(...shuffle([...SYMBOLS]));
+  }
+  return strip;
+}
+
+const reelState = Array.from({ length: GRID_COLS }, () => ({
+  spinning: false,
+  offset: 0,
+  spinIndex: 0,
+  spinSymbols: [],
+  columnSymbols: Array.from({ length: GRID_ROWS }, () => SYMBOLS[0]),
+}));
+
+let animationHandle = null;
+let lastTimestamp = 0;
+let activeWinningLines = [];
+
+function isAllStopped() {
+  return reelState.every((reel) => !reel.spinning);
+}
+
+function slotCenter(col, row) {
+  return { x: col * SLOT_WIDTH + SLOT_WIDTH / 2, y: row * SLOT_HEIGHT + SLOT_HEIGHT / 2 };
+}
+
+// Zeichnet für jede gewonnene Linie eine Verbindungslinie über die (von links)
+// gewinnenden Symbole - nur über die tatsächlich zählenden `count` Positionen,
+// nicht über die ganze Payline.
+function drawWinningLines() {
+  activeWinningLines.forEach(({ line, count }) => {
+    const coords = PAYLINES[line]?.slice(0, count);
+    if (!coords || coords.length < 2) return;
+
+    ctx.save();
+    ctx.strokeStyle = "#fff176";
+    ctx.lineWidth = 4;
+    ctx.shadowColor = "#ffb300";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    coords.forEach(([col, row], i) => {
+      const { x, y } = slotCenter(col, row);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#fff176";
+    coords.forEach(([col, row]) => {
+      const { x, y } = slotCenter(col, row);
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  });
+}
+
+function drawSymbol(name, x, y) {
+  const img = images[name];
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, x, y, SLOT_WIDTH, SLOT_HEIGHT);
+    return;
+  }
+  // Platzhalter, solange kein Custom-Asset vorhanden ist
+  ctx.fillStyle = "#2a2a2a";
+  ctx.fillRect(x, y, SLOT_WIDTH, SLOT_HEIGHT);
+  ctx.strokeStyle = "#555";
+  ctx.strokeRect(x + 1, y + 1, SLOT_WIDTH - 2, SLOT_HEIGHT - 2);
+  ctx.fillStyle = "#fff";
+  ctx.font = "16px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(name, x + SLOT_WIDTH / 2, y + SLOT_HEIGHT / 2);
+}
+
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  reelState.forEach((reel, col) => {
+    const x = col * SLOT_WIDTH;
+    if (reel.spinning) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, 0, SLOT_WIDTH, canvas.height);
+      ctx.clip();
+      // GRID_ROWS+1 Symbole zeichnen, damit das 3-Reihen-Fenster beim Scrollen
+      // lückenlos gefüllt bleibt.
+      for (let i = 0; i <= GRID_ROWS; i += 1) {
+        const symbol = reel.spinSymbols[(reel.spinIndex + i) % reel.spinSymbols.length];
+        drawSymbol(symbol, x, i * SLOT_HEIGHT - reel.offset);
+      }
+      ctx.restore();
+    } else {
+      reel.columnSymbols.forEach((symbol, row) => {
+        drawSymbol(symbol, x, row * SLOT_HEIGHT);
+      });
+    }
+  });
+
+  if (activeWinningLines.length > 0 && isAllStopped()) {
+    drawWinningLines();
+  }
+}
+
+function tick(timestamp) {
+  const delta = timestamp - lastTimestamp;
+  lastTimestamp = timestamp;
+  let anySpinning = false;
+
+  reelState.forEach((reel) => {
+    if (!reel.spinning) return;
+    anySpinning = true;
+    reel.offset += SPIN_SPEED_PX_PER_MS * delta;
+    if (reel.offset >= SLOT_HEIGHT) {
+      reel.offset -= SLOT_HEIGHT;
+      reel.spinIndex = (reel.spinIndex + 1) % reel.spinSymbols.length;
+    }
+  });
+
+  render();
+  animationHandle = anySpinning ? requestAnimationFrame(tick) : null;
+}
+
+function ensureAnimating() {
+  if (animationHandle === null) {
+    lastTimestamp = performance.now();
+    animationHandle = requestAnimationFrame(tick);
+  }
+}
+
+export async function init() {
+  await loadImages();
+  render();
+}
+
+export function startSpin() {
+  activeWinningLines = [];
+  reelState.forEach((reel) => {
+    reel.spinning = true;
+    reel.offset = 0;
+    reel.spinIndex = 0;
+    reel.spinSymbols = buildSpinStrip();
+  });
+  ensureAnimating();
+}
+
+// grid: vom Server als [reihe][spalte] gesendet (GRID_ROWS Reihen à GRID_COLS Symbole).
+// Gibt ein Promise zurück, das erfüllt wird sobald die letzte Spalte steht - so
+// kann socket.js Folgeanimationen (Multiplikatoren, Gewinnlinien) erst danach starten.
+export function stopOnSymbol(grid) {
+  return new Promise((resolve) => {
+    for (let col = 0; col < GRID_COLS; col += 1) {
+      setTimeout(() => {
+        reelState[col].spinning = false;
+        reelState[col].columnSymbols = grid.map((row) => row[col]);
+        reelState[col].offset = 0;
+        render();
+        if (col === GRID_COLS - 1) resolve();
+      }, col * STOP_STAGGER_MS);
+    }
+  });
+}
+
+// lines: data.winning_lines aus dem "spin_result"-Event, z.B.
+// [{ line: 0, symbol: "seven", count: 3, win: 100 }, ...]. Wird erst gezeichnet,
+// sobald alle Walzen stehen (siehe isAllStopped() in render()).
+export function showWinningLines(lines) {
+  activeWinningLines = lines || [];
+  render();
+}

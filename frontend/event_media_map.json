@@ -1,0 +1,186 @@
+{
+  "win_small":    { "type": "video", "src": "assets/overlays/win_small.webm",  "duration_ms": 2000 },
+  "win_jackpot":  { "type": "video", "src": "assets/overlays/win_jackpot.webm", "duration_ms": 4000 },
+  "lose":         { "type": "gif",   "src": "assets/overlays/lose.gif",         "duration_ms": 1500 },
+  "idle_attract": { "type": "gif",   "src": "assets/overlays/idle_attract.gif", "duration_ms": null },
+  "lever_pull":   { "type": "image", "src": "assets/overlays/lever_flash.png",  "duration_ms": 300 },
+  
+  "sausage_knife": {
+    "type": "gif",
+    "src": "assets/overlays/sausage_knife.gif",
+    "duration_ms": 4560,
+    "position": { "top": 43, "left": 0, "width": 700, "height": 394 }
+  },
+
+  "spin_animation": [
+    {
+      "type": "gif",
+      "src": "assets/overlays/sausage_knife.gif",
+      "duration_ms": null,
+      "position": { "top": 43, "left": 0, "width": 700, "height": 394 }
+    }
+  ],
+
+  "multiplier_hit": [
+    {
+      "type": "image",
+      "src": "assets/overlays/flyby_placeholder.svg",
+      "anim": "pop_scale",
+      "fly_in_ms": 300,
+      "hold_ms": 500,
+      "fly_out_ms": 300,
+      "position": { "top": 150, "left": 300, "width": 200, "height": 180 },
+      "weight": 2
+    },
+    {
+      "type": "image",
+      "src": "assets/overlays/flyby_placeholder.svg",
+      "anim": "drop_bounce",
+      "fly_in_ms": 300,
+      "hold_ms": 500,
+      "fly_out_ms": 300,
+      "position": { "top": 150, "left": 300, "width": 200, "height": 180 },
+      "weight": 1
+    },
+    {
+      "type": "gif",
+      "src": "assets/overlays/sniper_shoot.gif",
+      "anim": "sniper_count",
+      "position": { "top": 0, "left": 0, "width": 800, "height": 480 },
+      "target_position": { "top": 190, "left": 250, "width": 300, "height": 100 },
+      "shot_duration_ms": 700,
+      "gap_ms": 150,
+      "aim_in_ms": 120,
+      "shoot_delay_ms": 420,
+      "target_font_size_px": 48,
+      "target_color": "#ffffff",
+      "target_hit_color": "#ff5252",
+      "label_format": "x{value}",
+      "screen_shake": true,
+      "muzzle_flash": true,
+      "weight": 3
+    }
+  ],
+
+  "flyby_demo": {
+    "type": "image",
+    "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+    "anim": "flyby",
+    "fly_in_ms": 500,
+    "hold_ms": 1000,
+    "fly_out_ms": 500,
+    "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+  },
+  "drop_bounce_demo": {
+    "type": "image",
+    "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+    "anim": "drop_bounce",
+    "fly_in_ms": 500,
+    "hold_ms": 1000,
+    "fly_out_ms": 400,
+    "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+  },
+  "pop_scale_demo": {
+    "type": "image",
+    "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+    "anim": "pop_scale",
+    "fly_in_ms": 400,
+    "hold_ms": 1000,
+    "fly_out_ms": 350,
+    "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+  },
+  "slide_up_fade_demo": {
+    "type": "image",
+    "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+    "anim": "slide_up_fade",
+    "fly_in_ms": 400,
+    "hold_ms": 1000,
+    "fly_out_ms": 400,
+    "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+  },
+
+  "sniper_count_demo": {
+    "type": "gif",
+    "src": "assets/overlays/sniper_shoot.gif",
+    "anim": "sniper_count",
+    "value": 3,
+    "position": { "top": 0, "left": 0, "width": 800, "height": 480 },
+    "target_position": { "top": 190, "left": 250, "width": 300, "height": 100 },
+    "shot_duration_ms": 700,
+    "gap_ms": 150,
+    "aim_in_ms": 120,
+    "shoot_delay_ms": 420,
+    "target_font_size_px": 48,
+    "target_color": "#ffffff",
+    "target_hit_color": "#ff5252",
+    "label_format": "x{value}",
+    "screen_shake": true,
+    "muzzle_flash": true
+  },
+
+  "chest_reveal_demo": {
+    "type": "image",
+    "src": "assets/overlays/chest_placeholder.svg",
+    "anim": "chest_reveal",
+    "reveal_src": "assets/overlays/female-middle-finger-hand.jpg",
+    "appear_ms": 700,
+    "open_delay_ms": 400,
+    "open_ms": 250,
+    "reveal_ms": 400,
+    "fade_out_ms": 300,
+    "position": { "top": 130, "left": 300, "width": 200, "height": 220 }
+  },
+
+  "coin_rain_reveal_demo": {
+    "type": "image",
+    "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+    "anim": "coin_rain_reveal",
+    "coin_src": "assets/overlays/coin_placeholder.svg",
+    "coin_count": 150,
+    "rain_duration_ms": 2200,
+    "reveal_delay_ms": 1800,
+    "grow_ms": 500,
+    "hold_ms": 1500,
+    "fade_out_ms": 400,
+    "position": { "top": 140, "left": 300, "width": 200, "height": 200 }
+  },
+
+  "anim_pool_demo": [
+    {
+      "type": "image",
+      "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+      "anim": "flyby",
+      "fly_in_ms": 500,
+      "hold_ms": 1000,
+      "fly_out_ms": 500,
+      "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+    },
+    {
+      "type": "image",
+      "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+      "anim": "drop_bounce",
+      "fly_in_ms": 500,
+      "hold_ms": 1000,
+      "fly_out_ms": 400,
+      "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+    },
+    {
+      "type": "image",
+      "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+      "anim": "pop_scale",
+      "fly_in_ms": 400,
+      "hold_ms": 1000,
+      "fly_out_ms": 350,
+      "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+    },
+    {
+      "type": "image",
+      "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+      "anim": "slide_up_fade",
+      "fly_in_ms": 400,
+      "hold_ms": 1000,
+      "fly_out_ms": 400,
+      "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
+    }
+  ]
+}

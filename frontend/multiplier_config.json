@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "duration_ms": 300,
+  "stagger_ms": 100,
+  "font_size_px": 22,
+  "color": "#ffd54f",
+  "glow_color": "#ff6f00",
+  "label_format": "x{value}",
+  "offset_y_px": 4
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Slotmaschine</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="stage">
+    <img id="frame" src="assets/frame/frame.png" alt="" />
+    <canvas id="reels"></canvas>
+    <div id="overlay-layer"></div>
+    <div id="credits-display">
+      Credits: <span id="credits-value">0</span>
+    </div>
+    <div id="loading-screen">
+      <img id="loading-logo" src="assets/sprites/book_of_rah_logo.jpg" alt="Book of Ra" />
+      <div id="loading-spinner"></div>
+    </div>
+  </div>
+
+  <div id="debug-panel">
+    <strong>Debug:</strong> Leertaste = Hebel ziehen.
+    <button type="button" id="debug-add-credits">+100 Credits</button>
+    <label for="debug-multiplier-chance">
+      Multiplikator-Chance: <span id="debug-multiplier-chance-value">0%</span>
+      <input type="range" id="debug-multiplier-chance" min="0" max="100" step="1" value="0" />
+    </label>
+    Events manuell testen:
+  </div>
+
+  <script src="js/vendor/socket.io.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
