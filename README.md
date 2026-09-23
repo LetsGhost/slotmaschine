@@ -44,6 +44,11 @@ SLOT_DEBUG=0 python backend/app.py   # Vollbild-Ansicht wie auf dem Pi testen
 SLOT_DEBUG=1 ./start.sh              # Debug-Panel auch auf dem Pi (start.sh setzt sonst SLOT_DEBUG=0)
 ```
 
+**Pi OS Lite (ohne Desktop):** `start.sh` startet Chromium über den
+Wayland-Kiosk-Compositor `cage` (`sudo apt install cage chromium-browser`).
+Das Script muss direkt an der Konsole des Pi laufen (Tastatur/Monitor oder
+Autologin auf tty1), nicht über SSH - dort gibt es keinen Bildschirm-Zugriff.
+
 Unter Windows (PowerShell) wird die Variable so gesetzt:
 
 ```powershell

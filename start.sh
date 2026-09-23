@@ -37,13 +37,32 @@ elif command -v chromium >/dev/null 2>&1; then
 elif command -v google-chrome >/dev/null 2>&1; then
   BROWSER=google-chrome
 else
-  echo "Kein Chromium/Chrome gefunden - öffne Standardbrowser stattdessen."
-  xdg-open "$URL"
-  wait "$SERVER_PID"
-  exit 0
+  echo "Kein Chromium/Chrome gefunden - bitte installieren: sudo apt install chromium-browser" >&2
+  exit 1
 fi
 
-"$BROWSER" --kiosk --noerrdialogs --disable-infobars --incognito "$URL"
+BROWSER_FLAGS=(
+  --kiosk
+  --noerrdialogs
+  --disable-infobars
+  --disable-session-crashed-bubble
+  --no-first-run
+  --password-store=basic
+  --incognito
+)
+
+if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
+  # Es läuft bereits eine grafische Oberfläche (Desktop-Image oder PC)
+  "$BROWSER" "${BROWSER_FLAGS[@]}" "$URL"
+elif command -v cage >/dev/null 2>&1; then
+  # Pi OS Lite ohne Desktop: Chromium im Wayland-Kiosk-Compositor cage starten.
+  # Muss direkt an der Konsole des Pi (TTY) laufen, nicht per SSH.
+  cage -- "$BROWSER" "${BROWSER_FLAGS[@]}" --ozone-platform=wayland "$URL"
+else
+  echo "Keine grafische Oberfläche gefunden. Auf Pi OS Lite cage installieren:" >&2
+  echo "  sudo apt install cage" >&2
+  exit 1
+fi
 
 # Wenn der Browser geschlossen wird, läuft das Script weiter und
 # stoppt (via trap) den Server automatisch mit.
