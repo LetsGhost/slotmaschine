@@ -1,4 +1,5 @@
 import { DISPLAY } from "./config.js";
+import { playSound } from "./sound.js";
 
 const layer = document.getElementById("overlay-layer");
 
@@ -365,7 +366,8 @@ function runFlybySpin(eventName, el, entry, onComplete) {
 // "Treffers" innerhalb eines Zyklus, Default 420), target_position (Default:
 // `position`), target_font_size_px, target_color, target_hit_color,
 // label_format (Platzhalter {value}, Default "x{value}"), screen_shake,
-// muzzle_flash (beide Default true).
+// muzzle_flash (beide Default true), shot_sound (Sound-Name aus sound.js,
+// Default "gunshot", false = stumm - spielt exakt zum Treffer-Zeitpunkt).
 function runSniperCount(eventName, el, entry, pos, onComplete, context) {
   el.remove();
 
@@ -381,6 +383,7 @@ function runSniperCount(eventName, el, entry, pos, onComplete, context) {
   const targetPos = entry.target_position || pos;
   const withShake = entry.screen_shake !== false;
   const withFlash = entry.muzzle_flash !== false;
+  const shotSound = entry.shot_sound ?? "gunshot";
 
   const wrapper = document.createElement("div");
   wrapper.dataset.event = eventName;
@@ -438,6 +441,8 @@ function runSniperCount(eventName, el, entry, pos, onComplete, context) {
       trackTimer(
         eventName,
         setTimeout(() => {
+          if (shotSound) playSound(shotSound);
+
           const hitPlayer = target.animate(
             [
               { transform: "scale(1)", color: targetColor, offset: 0 },

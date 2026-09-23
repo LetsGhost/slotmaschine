@@ -192,7 +192,8 @@ export function startSpin() {
 // grid: vom Server als [reihe][spalte] gesendet (GRID_ROWS Reihen à GRID_COLS Symbole).
 // Gibt ein Promise zurück, das erfüllt wird sobald die letzte Spalte steht - so
 // kann socket.js Folgeanimationen (Multiplikatoren, Gewinnlinien) erst danach starten.
-export function stopOnSymbol(grid) {
+// onReelStop(col) wird im selben Moment aufgerufen, in dem eine Spalte stehen bleibt.
+export function stopOnSymbol(grid, onReelStop) {
   return new Promise((resolve) => {
     for (let col = 0; col < GRID_COLS; col += 1) {
       setTimeout(() => {
@@ -200,6 +201,7 @@ export function stopOnSymbol(grid) {
         reelState[col].columnSymbols = grid.map((row) => row[col]);
         reelState[col].offset = 0;
         render();
+        onReelStop?.(col);
         if (col === GRID_COLS - 1) resolve();
       }, col * STOP_STAGGER_MS);
     }

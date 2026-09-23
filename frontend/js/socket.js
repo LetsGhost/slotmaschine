@@ -1,6 +1,7 @@
 import { startSpin, stopOnSymbol, showWinningLines } from "./reels.js";
+import { GRID_COLS } from "./config.js";
 import { showEvent, showEventSequence, hideAll, clearEvent } from "./effects.js";
-import { playSound } from "./sound.js";
+import { playSound, startLoop, setLoopVolume, stopLoop } from "./sound.js";
 import { playMultiplierReveals, clearMultipliers } from "./multipliers.js";
 
 const IDLE_TIMEOUT_MS = 30000;
@@ -50,6 +51,7 @@ socket.on("state_update", (data) => {
     clearMultipliers();
     startSpin();
     playSound("lever");
+    startLoop("spin");
     if (Math.random() < SPIN_EXTRA_CHANCE) {
       showEvent("spin_animation");
     }
@@ -62,9 +64,18 @@ socket.on("state_update", (data) => {
 // (event_media_map.json), eine nach der anderen -> erst danach Auszahlung.
 socket.on("spin_result", async (data) => {
   clearEvent("spin_animation");
-  playSound("reel_stop");
 
-  await stopOnSymbol(data.reels);
+  // Pro stehender Walze ein Ping; das Spin-Rattern wird mit jeder Walze leiser
+  // und verstummt, wenn die letzte steht.
+  await stopOnSymbol(data.reels, (col) => {
+    playSound("reel_stop");
+    const stillSpinning = GRID_COLS - 1 - col;
+    if (stillSpinning === 0) {
+      stopLoop("spin");
+    } else {
+      setLoopVolume("spin", stillSpinning / GRID_COLS);
+    }
+  });
   await playMultiplierReveals(data.multipliers);
   showWinningLines(data.winning_lines);
   await showEventSequence("multiplier_hit", data.multiplier_hits);
