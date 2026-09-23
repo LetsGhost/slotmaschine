@@ -79,7 +79,41 @@ const ANIMATIONS = {
 export async function loadEventMediaMap(url = "event_media_map.json") {
   const res = await fetch(url);
   mediaMap = await res.json();
+  await preloadImages(mediaMap);
   return mediaMap;
+}
+
+// Lädt und dekodiert alle Bilder aus event_media_map.json schon während des
+// Ladebildschirms. Sonst werden z.B. reveal_src bei "chest_reveal" erst im
+// Moment des Reveals geladen - auf dem Pi dauert das Dekodieren länger als die
+// Anzeigedauer und das Bild taucht nie auf. Die Image-Objekte bleiben in
+// preloadedImages referenziert, damit der Browser die dekodierten Bilder behält.
+const preloadedImages = [];
+const DEFAULT_IMAGE_SRCS = ["assets/overlays/reveal_placeholder.svg", "assets/overlays/coin_placeholder.svg"];
+
+function collectImageSrcs(value, srcs) {
+  if (typeof value === "string") {
+    if (value.startsWith("assets/") && !/\.(webm|mp4)$/i.test(value)) srcs.add(value);
+  } else if (value && typeof value === "object") {
+    Object.values(value).forEach((v) => collectImageSrcs(v, srcs));
+  }
+}
+
+async function preloadImages(map) {
+  const srcs = new Set(DEFAULT_IMAGE_SRCS);
+  collectImageSrcs(map, srcs);
+  await Promise.all(
+    [...srcs].map(async (src) => {
+      const img = new Image();
+      img.src = src;
+      try {
+        await img.decode();
+        preloadedImages.push(img);
+      } catch {
+        console.warn(`Bild "${src}" konnte nicht vorgeladen werden (Asset fehlt?)`);
+      }
+    })
+  );
 }
 
 export function getEventNames() {

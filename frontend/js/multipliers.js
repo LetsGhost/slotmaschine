@@ -44,7 +44,9 @@ function ensureLayer() {
   layer.style.left = `${REEL_WINDOW.left}px`;
   layer.style.width = `${REEL_WINDOW.width}px`;
   layer.style.height = `${REEL_WINDOW.height}px`;
-  layer.style.zIndex = "3";
+  // Gleiche Ebene wie #reels (2), aber später im DOM -> über den Walzen,
+  // unter #overlay-layer (3) mit den Event-Animationen.
+  layer.style.zIndex = "2";
   layer.style.pointerEvents = "none";
   document.getElementById("stage").appendChild(layer);
   return layer;
