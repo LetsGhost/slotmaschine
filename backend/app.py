@@ -66,7 +66,7 @@ def get_state():
 @socketio.on("connect")
 def handle_connect():
     socketio.emit("state_update", {"state": game.state.name})
-    socketio.emit("credits_update", {"credits": credit_manager.balance()})
+    socketio.emit("credits_update", {"credits": credit_manager.balance(), "bet": config.SPIN_COST})
     socketio.emit("debug_multiplier_chance_update", {"chance": reels.get_effective_multiplier_chance()})
 
 

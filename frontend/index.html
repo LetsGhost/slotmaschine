@@ -4,15 +4,56 @@
   <meta charset="UTF-8" />
   <title>Slotmaschine</title>
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/frame.css" />
 </head>
 <body>
   <div id="stage">
-    <img id="frame" src="assets/frame/frame.png" alt="" />
+    <!-- Rahmen, siehe css/frame.css (Vorlage: assets/frame/Slot Rahmen(1).html) -->
+    <div id="frame">
+      <div class="frame-bg frame-bg-top"></div>
+      <div class="frame-bg frame-bg-bottom"></div>
+      <div class="frame-bg frame-bg-left"></div>
+      <div class="frame-bg frame-bg-right"></div>
+
+      <div class="frame-border-outer"></div>
+      <div class="frame-border-inner"></div>
+
+      <div class="frame-pillar frame-pillar-left">
+        <div class="frame-portrait"><img src="assets/frame/pharao_sonnenbrille.png" alt="" /></div>
+        <div class="frame-portrait frame-portrait-contain"><img src="assets/frame/buch.png" alt="" /></div>
+        <div class="frame-portrait"><img src="assets/frame/pharao_brille.png" alt="" /></div>
+      </div>
+      <div class="frame-pillar frame-pillar-right">
+        <div class="frame-portrait"><img src="assets/frame/pharao_brille.png" alt="" /></div>
+        <div class="frame-portrait frame-portrait-contain"><img src="assets/frame/buch.png" alt="" /></div>
+        <div class="frame-portrait"><img src="assets/frame/pharao_sonnenbrille.png" alt="" /></div>
+      </div>
+      <div class="frame-cap frame-cap-top frame-cap-left"></div>
+      <div class="frame-cap frame-cap-bottom frame-cap-left"></div>
+      <div class="frame-cap frame-cap-top frame-cap-right"></div>
+      <div class="frame-cap frame-cap-bottom frame-cap-right"></div>
+
+      <div class="frame-window-border"></div>
+      <div class="frame-window-edge"></div>
+
+      <div class="frame-title-row">
+        <img class="frame-emblem" src="assets/frame/abenteurer.png" alt="" />
+        <div class="frame-title">Book of dome</div>
+        <img class="frame-emblem frame-emblem-mirrored" src="assets/frame/abenteurer.png" alt="" />
+      </div>
+
+      <div class="frame-glyph-row">
+        <span>𓋹</span><span>𓂀</span><span>𓇳</span><span>𓆣</span><span>𓊽</span><span>𓅓</span><span>𓁹</span><span>𓃭</span><span>𓆓</span><span>𓋹</span><span>𓂀</span><span>𓇳</span><span>𓆣</span><span>𓊽</span><span>𓅓</span><span>𓁹</span><span>𓃭</span><span>𓋹</span>
+      </div>
+
+      <div class="frame-plates">
+        <div class="frame-plate">GUTHABEN <span class="frame-plate-value" id="credits-value">0</span></div>
+        <div class="frame-plate">EINSATZ <span class="frame-plate-value" id="bet-value">0</span></div>
+        <div class="frame-plate">GEWINN <span class="frame-plate-value" id="win-value">0</span></div>
+      </div>
+    </div>
     <canvas id="reels"></canvas>
     <div id="overlay-layer"></div>
-    <div id="credits-display">
-      Credits: <span id="credits-value">0</span>
-    </div>
     <div id="loading-screen">
       <img id="loading-logo" src="assets/sprites/book_of_rah_logo.jpg" alt="Book of Ra" />
       <div id="loading-spinner"></div>

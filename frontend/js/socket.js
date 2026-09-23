@@ -11,6 +11,8 @@ const SPIN_EXTRA_CHANCE = 0.3;
 
 const socket = io();
 const creditsEl = document.getElementById("credits-value");
+const betEl = document.getElementById("bet-value");
+const winEl = document.getElementById("win-value");
 
 let idleTimer = null;
 // Vom "payout"-Event gepuffert und erst gezeigt, nachdem die Multiplikator-
@@ -20,13 +22,13 @@ let pendingPayout = null;
 function revealPendingPayout() {
   const data = pendingPayout;
   pendingPayout = null;
+  winEl.textContent = data?.amount ?? 0;
   if (!data || data.amount <= 0) return;
-  const context = { amount: data.amount };
   if (data.amount >= JACKPOT_THRESHOLD) {
-    showEvent("win_jackpot", { context });
+    showEvent("win_jackpot");
     playSound("win_jackpot");
   } else {
-    showEvent("win_small", { context });
+    showEvent("win_small");
     playSound("win_small");
   }
 }
@@ -44,6 +46,7 @@ socket.on("connect", () => {
 socket.on("state_update", (data) => {
   resetIdleTimer();
   if (data.state === "SPINNING") {
+    winEl.textContent = 0;
     clearMultipliers();
     startSpin();
     playSound("lever");
@@ -78,6 +81,7 @@ socket.on("payout", (data) => {
 
 socket.on("credits_update", (data) => {
   creditsEl.textContent = data.credits;
+  if (data.bet != null) betEl.textContent = data.bet;
 });
 
 // Debug-Slider: Wahrscheinlichkeit (0-100%), dass ein Symbol beim Spin einen

@@ -1,0 +1,225 @@
+/* Rahmen um die Walzen - übernommen aus assets/frame/Slot Rahmen(1).html.
+   Alle Maße beziehen sich auf die 800x480-Stage. Das Walzen-Fenster
+   (100/100, 600x280) muss zu REEL_WINDOW in js/config.js passen. */
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: block;
+  src: url("../assets/fonts/cinzel-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: block;
+  src: url("../assets/fonts/cinzel-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Noto Sans Egyptian Hieroglyphs";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../assets/fonts/noto-sans-egyptian-hieroglyphs.woff2") format("woff2");
+  unicode-range: U+13000-13455, U+13460-143FA;
+}
+
+:root {
+  --frame-bg: radial-gradient(ellipse at 50% 55%, #1d4f9c 0%, #0b2a5b 55%, #06142e 100%);
+  --gold-light: #f5d16a;
+  --gold: #f0c24e;
+  --gold-dark: #5a3508;
+}
+
+#frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 480px;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  font-family: "Cinzel", serif;
+}
+
+#frame > div {
+  position: absolute;
+}
+
+/* Blauer Hintergrund als vier Streifen um das Walzen-Fenster herum - das
+   Fenster selbst bleibt frei, dort zeichnet #reels. */
+.frame-bg {
+  background: var(--frame-bg);
+  background-size: 800px 480px;
+}
+.frame-bg-top { left: 0; top: 0; width: 800px; height: 100px; background-position: 0 0; }
+.frame-bg-bottom { left: 0; top: 380px; width: 800px; height: 100px; background-position: 0 -380px; }
+.frame-bg-left { left: 0; top: 100px; width: 100px; height: 280px; background-position: 0 -100px; }
+.frame-bg-right { left: 700px; top: 100px; width: 100px; height: 280px; background-position: -700px -100px; }
+
+.frame-border-outer {
+  inset: 0;
+  border: 6px solid;
+  border-image: linear-gradient(135deg, #fff3b0, #e0a82e 30%, #7a4c0e 50%, #f5d16a 70%, #8a5a12) 1;
+}
+.frame-border-inner {
+  inset: 9px;
+  border: 1px solid var(--gold-light);
+  opacity: 0.6;
+}
+
+/* Goldene Säulen links/rechts mit je drei Porträt-Bildern */
+.frame-pillar {
+  top: 92px;
+  width: 76px;
+  height: 296px;
+  padding: 8px 0;
+  border: 3px solid;
+  border-image: linear-gradient(180deg, #fff3b0, #c98f22 40%, #6e430b 60%, #f5d16a) 1;
+  background: linear-gradient(90deg, #8a5a12 0%, #d9a441 18%, #f3d58a 50%, #d9a441 82%, #8a5a12 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+.frame-portrait {
+  width: 62px;
+  height: 78px;
+  border: 2px solid #3a1f05;
+  box-shadow: 0 0 0 2px var(--gold-light);
+  background: #3a1f05;
+  overflow: hidden;
+}
+.frame-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.frame-portrait-contain img {
+  object-fit: contain;
+}
+.frame-pillar-left { left: 12px; }
+.frame-pillar-right { left: 712px; }
+
+.frame-cap {
+  width: 88px;
+  height: 14px;
+}
+.frame-cap-top { top: 80px; background: linear-gradient(180deg, #fff3b0, #e0a82e 45%, #7a4c0e); }
+.frame-cap-bottom { top: 386px; background: linear-gradient(180deg, #f5d16a, #c98f22 45%, #6e430b); }
+.frame-cap-left { left: 6px; }
+.frame-cap-right { left: 706px; }
+
+/* Goldrahmen direkt um das Walzen-Fenster */
+.frame-window-border {
+  left: 86px;
+  top: 86px;
+  width: 628px;
+  height: 308px;
+  border: 14px solid;
+  border-image: linear-gradient(160deg, #fff6c4 0%, #f0c24e 22%, #8a5a12 45%, #f7dc84 62%, #b37a1c 80%, #fff0a8 100%) 1;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.7), inset 0 0 0 1px #3a1f05;
+}
+.frame-window-edge {
+  left: 98px;
+  top: 98px;
+  width: 604px;
+  height: 284px;
+  border: 2px solid #2a1603;
+}
+
+/* Titel-Banner oben */
+.frame-title-row {
+  left: 0;
+  top: 14px;
+  width: 800px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.frame-emblem {
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 0 var(--gold-dark)) drop-shadow(0 0 8px rgba(240, 194, 78, 0.55));
+}
+.frame-emblem-mirrored {
+  transform: scaleX(-1);
+}
+.frame-title {
+  height: 62px;
+  padding: 0 44px;
+  border: 4px solid var(--gold);
+  border-radius: 31px;
+  box-shadow: 0 0 0 2px var(--gold-dark), 0 0 0 5px #b37a1c, 0 4px 14px rgba(0, 0, 0, 0.6);
+  background: linear-gradient(180deg, #7a1010 0%, #3d0606 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 32px;
+  letter-spacing: 4px;
+  line-height: 1;
+  white-space: nowrap;
+  color: #f7d774;
+  text-shadow: 0 2px 0 var(--gold-dark), 0 -1px 0 #fff6c4, 0 0 12px rgba(247, 215, 116, 0.45);
+}
+
+/* Hieroglyphen-Zeile unter dem Walzen-Fenster */
+.frame-glyph-row {
+  left: 100px;
+  top: 402px;
+  width: 600px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Noto Sans Egyptian Hieroglyphs", serif;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--gold);
+  opacity: 0.85;
+}
+
+/* Anzeige-Plaketten unten: Guthaben / Einsatz / Gewinn */
+.frame-plates {
+  left: 110px;
+  top: 430px;
+  width: 580px;
+  height: 38px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.frame-plate {
+  padding: 0 10px;
+  border: 3px solid;
+  border-image: linear-gradient(180deg, #fff3b0, #c98f22 50%, #6e430b) 1;
+  background: linear-gradient(180deg, #06142e, #0b2a5b);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--gold);
+}
+.frame-plate-value {
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 1px;
+  color: #fff3b0;
+  text-shadow: 0 0 6px rgba(247, 215, 116, 0.45);
+}

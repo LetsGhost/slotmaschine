@@ -160,27 +160,15 @@ function pickVariant(eventName) {
 // braucht, um sich an den konkreten Anlass anzupassen - z.B. übergibt
 // showEventSequence hier den getroffenen Multiplikator-Wert, damit "anim":
 // "sniper_count" weiß, wie oft geschossen werden soll (siehe runSniperCount).
-// Enthält context ein "amount" (z.B. Gewinnbetrag bei win_small/win_jackpot),
-// wird er unabhängig von der gewählten Animation fest am unteren Bildschirmrand
-// eingeblendet und verschwindet, sobald das Event fertig ist (siehe
-// showAmountLabel).
-export function showEvent(eventName, { onComplete: onCompleteOuter, context } = {}) {
+export function showEvent(eventName, { onComplete, context } = {}) {
   const entry = pickVariant(eventName);
   if (!entry) {
     console.warn(`Kein Event-Media-Mapping für "${eventName}"`);
-    onCompleteOuter?.();
+    onComplete?.();
     return;
   }
 
   clearEvent(eventName);
-
-  const amountLabel = context?.amount != null ? showAmountLabel(eventName, entry, context.amount) : null;
-  const onComplete = amountLabel
-    ? () => {
-        amountLabel.remove();
-        onCompleteOuter?.();
-      }
-    : onCompleteOuter;
 
   const pos = entry.position || { top: 0, left: 0, width: 800, height: 480 };
   let el;
@@ -251,42 +239,6 @@ export function showEvent(eventName, { onComplete: onCompleteOuter, context } = 
     // Overlay (z.B. idle_attract), das extern per clearEvent() entfernt wird.
     onComplete?.();
   }
-}
-
-// Betrag-Text am unteren Bildschirmrand, für die ganze Dauer des Events.
-// Optional pro Variante konfigurierbar: "amount_format" (Platzhalter {amount},
-// Default "+{amount}"), "amount_bottom_px" (Abstand zum unteren Bildschirmrand,
-// Default 10), "amount_font_size_px" (Default 48), "amount_color" (Default "#ffd700").
-function showAmountLabel(eventName, entry, amount) {
-  const label = document.createElement("div");
-  label.dataset.event = eventName;
-  label.textContent = (entry.amount_format ?? "+{amount}").replace("{amount}", amount);
-  label.style.position = "absolute";
-  label.style.left = "0";
-  label.style.right = "0";
-  label.style.bottom = `${entry.amount_bottom_px ?? 10}px`;
-  label.style.textAlign = "center";
-  label.style.fontSize = `${entry.amount_font_size_px ?? 48}px`;
-  label.style.fontWeight = "bold";
-  label.style.lineHeight = "1";
-  label.style.color = entry.amount_color ?? "#ffd700";
-  label.style.textShadow = "0 0 10px #000, 0 0 4px #000";
-  // Immer obenauf, auch über später angehängten Elementen (z.B. Münzregen).
-  label.style.zIndex = "1";
-  layer.appendChild(label);
-
-  trackAnimation(
-    eventName,
-    label.animate(
-      [
-        { transform: "scale(0.5)", opacity: 0 },
-        { transform: "scale(1.15)", opacity: 1, offset: 0.7 },
-        { transform: "scale(1)", opacity: 1 },
-      ],
-      { duration: 350, easing: "ease-out", fill: "forwards" }
-    )
-  );
-  return label;
 }
 
 function runFlyAnimation(eventName, el, entry, anim, onComplete) {

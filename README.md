@@ -93,8 +93,6 @@ wenn alle Assets schneller fertig geladen sind. Danach blendet er sanft aus.
 
 ## Fehlende Assets (Phase 3, noch zu ergänzen)
 
-- `frontend/assets/frame/frame.png` - Rahmenbild, 800×480. Sobald vorhanden,
-  Ausschnitt-Koordinaten in `frontend/js/config.js` (`REEL_WINDOW`) eintragen.
 - `frontend/assets/sprites/{cherry,lemon,bell,star,seven}.png` - Symbolbilder,
   quadratisch (empfohlen 140×140px), transparenter Hintergrund.
 - `frontend/assets/overlays/` - `win_small.webm`, `win_jackpot.webm`,
@@ -288,13 +286,6 @@ Vollständig ohne Codeänderung konfigurierbar:
   Für weitere Animationen einfach Einträge im Pool ergänzen. Ältere
   Schreibweisen (einzelnes Objekt oder reines Array) funktionieren
   weiterhin. Siehe `anim_pool_demo` als Beispiel.
-
-  **Gewinnbetrag:** Bei `win_small` und `win_jackpot` wird der ausgezahlte
-  Betrag - egal welche Variante/`anim` gewählt wurde - fest am unteren
-  Bildschirmrand eingeblendet, solange die Animation läuft. Optional pro
-  Variante: `amount_format` (Platzhalter `{amount}`, Default `"+{amount}"`),
-  `amount_bottom_px` (Abstand zum unteren Bildschirmrand, Default 10), `amount_font_size_px`
-  (Default 48), `amount_color` (Default `#ffd700`).
 
   **Extra-Animation während des Spinnens:** Das Event `spin_animation`
   (ebenfalls ein Pool, aktuell mit `sausage_knife` befüllt - beliebig um

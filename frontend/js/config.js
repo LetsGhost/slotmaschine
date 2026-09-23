@@ -1,7 +1,7 @@
 export const DISPLAY = { width: 800, height: 480 };
 
-// Position/Größe des Walzen-Ausschnitts im Rahmenbild (assets/frame/frame.png).
-// Muss angepasst werden, sobald das finale Rahmenbild feststeht.
+// Position/Größe des Walzen-Fensters im Rahmen (css/frame.css, Vorlage assets/frame/Slot Rahmen(1).html).
+// Muss mit dem Fenster in css/frame.css (.frame-bg-*, .frame-window-*) übereinstimmen.
 export const REEL_WINDOW = { top: 100, left: 100, width: 600, height: 280 };
 
 // 5 Spalten x 3 Reihen - muss mit backend/config.py (GRID_COLS/GRID_ROWS) übereinstimmen.

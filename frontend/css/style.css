@@ -42,16 +42,6 @@ body:not(.debug-mode) #debug-panel {
   -webkit-user-select: none;
 }
 
-#frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 800px;
-  height: 480px;
-  z-index: 1;
-  pointer-events: none;
-}
-
 #reels {
   position: absolute;
   z-index: 2;
@@ -70,17 +60,6 @@ body:not(.debug-mode) #debug-panel {
 #overlay-layer img,
 #overlay-layer video {
   position: absolute;
-}
-
-#credits-display {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  z-index: 4;
-  color: #fff;
-  font-size: 20px;
-  font-weight: bold;
-  text-shadow: 0 0 4px #000;
 }
 
 #debug-panel {
