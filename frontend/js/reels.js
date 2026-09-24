@@ -1,4 +1,5 @@
-import { REEL_WINDOW, SYMBOL_ASSETS, SYMBOLS, GRID_COLS, GRID_ROWS, PAYLINES } from "./config.js";
+import { REEL_WINDOW, SYMBOL_ASSETS, SYMBOLS, BONUS_SYMBOLS, GRID_COLS, GRID_ROWS, PAYLINES } from "./config.js";
+import { drawTileFrame, drawTileCorners, drawWinLine } from "./tileframe.js";
 
 const SLOT_WIDTH = REEL_WINDOW.width / GRID_COLS;
 const SLOT_HEIGHT = REEL_WINDOW.height / GRID_ROWS;
@@ -70,35 +71,29 @@ function slotCenter(col, row) {
 
 // Zeichnet für jede gewonnene Linie eine Verbindungslinie über die (von links)
 // gewinnenden Symbole - nur über die tatsächlich zählenden `count` Positionen,
-// nicht über die ganze Payline.
+// nicht über die ganze Payline (bei 5 Treffern bis zum rechten Rand).
 function drawWinningLines() {
   activeWinningLines.forEach(({ line, count }) => {
     const coords = PAYLINES[line]?.slice(0, count);
     if (!coords || coords.length < 2) return;
-
-    ctx.save();
-    ctx.strokeStyle = "#fff176";
-    ctx.lineWidth = 4;
-    ctx.shadowColor = "#ffb300";
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    coords.forEach(([col, row], i) => {
-      const { x, y } = slotCenter(col, row);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#fff176";
-    coords.forEach(([col, row]) => {
-      const { x, y } = slotCenter(col, row);
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.restore();
+    const points = coords.map(([col, row]) => slotCenter(col, row));
+    drawWinLine(ctx, points, canvas.width, count >= GRID_COLS);
   });
+}
+
+// "col,row"-Schlüssel aller Kacheln, die zu einer aktiven Gewinnlinie zählen.
+function winningCells() {
+  const cells = new Set();
+  if (!isAllStopped()) return cells;
+  activeWinningLines.forEach(({ line, count }) => {
+    PAYLINES[line]?.slice(0, count).forEach(([col, row]) => cells.add(`${col},${row}`));
+  });
+  return cells;
+}
+
+function frameVariant(symbol, isWin) {
+  if (isWin) return "win";
+  return BONUS_SYMBOLS.includes(symbol) ? "bonus" : "standard";
 }
 
 function drawSymbol(name, x, y) {
@@ -121,26 +116,48 @@ function drawSymbol(name, x, y) {
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const wins = winningCells();
+  // Kacheln sammeln, damit Gewinn-Rahmen (mit Glow) und die Eck-Rauten in
+  // eigenen Durchgängen über den normalen Kacheln liegen.
+  const tiles = [];
   reelState.forEach((reel, col) => {
     const x = col * SLOT_WIDTH;
     if (reel.spinning) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(x, 0, SLOT_WIDTH, canvas.height);
-      ctx.clip();
       // GRID_ROWS+1 Symbole zeichnen, damit das 3-Reihen-Fenster beim Scrollen
       // lückenlos gefüllt bleibt.
       for (let i = 0; i <= GRID_ROWS; i += 1) {
         const symbol = reel.spinSymbols[(reel.spinIndex + i) % reel.spinSymbols.length];
-        drawSymbol(symbol, x, i * SLOT_HEIGHT - reel.offset);
+        tiles.push({ symbol, x, y: i * SLOT_HEIGHT - reel.offset, clipCol: x, variant: frameVariant(symbol, false) });
       }
-      ctx.restore();
     } else {
       reel.columnSymbols.forEach((symbol, row) => {
-        drawSymbol(symbol, x, row * SLOT_HEIGHT);
+        const variant = frameVariant(symbol, wins.has(`${col},${row}`));
+        tiles.push({ symbol, x, y: row * SLOT_HEIGHT, clipCol: null, variant });
       });
     }
   });
+
+  const withClip = (tile, draw) => {
+    ctx.save();
+    if (tile.clipCol !== null) {
+      ctx.beginPath();
+      ctx.rect(tile.clipCol, 0, SLOT_WIDTH, canvas.height);
+      ctx.clip();
+    }
+    draw();
+    ctx.restore();
+  };
+  const normal = tiles.filter((t) => t.variant !== "win");
+  const winning = tiles.filter((t) => t.variant === "win");
+  [normal, winning].forEach((group) =>
+    group.forEach((t) =>
+      withClip(t, () => {
+        drawSymbol(t.symbol, t.x, t.y);
+        drawTileFrame(ctx, t.x, t.y, SLOT_WIDTH, SLOT_HEIGHT, t.variant);
+      })
+    )
+  );
+  tiles.forEach((t) => withClip(t, () => drawTileCorners(ctx, t.x, t.y, SLOT_WIDTH, SLOT_HEIGHT, t.variant)));
 
   if (activeWinningLines.length > 0 && isAllStopped()) {
     drawWinningLines();

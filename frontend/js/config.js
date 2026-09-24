@@ -30,3 +30,6 @@ export const SYMBOL_ASSETS = {
 };
 
 export const SYMBOLS = Object.keys(SYMBOL_ASSETS);
+
+// Symbole, die den blauen BONUS/SCATTER-Rahmen bekommen (js/tileframe.js).
+export const BONUS_SYMBOLS = [];
