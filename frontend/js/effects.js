@@ -3,7 +3,7 @@ import { playSound } from "./sound.js";
 
 const layer = document.getElementById("overlay-layer");
 
-// eventName -> { timers: Set<number>, animations: Set<Animation> }.
+// eventName -> { timers: Set<number>, animations: Set<Animation>, sounds: Set<AudioBufferSourceNode> }.
 // Ein Event kann viele Timer/Animationen gleichzeitig haben (z.B. Münzregen),
 // clearEvent() räumt dann alles zusammen auf statt nur ein einzelnes Element.
 const activeControllers = new Map();
@@ -18,10 +18,15 @@ function trackAnimation(eventName, animation) {
   return animation;
 }
 
+function trackSound(eventName, source) {
+  if (source) getController(eventName).sounds.add(source);
+  return source;
+}
+
 function getController(eventName) {
   let controller = activeControllers.get(eventName);
   if (!controller) {
-    controller = { timers: new Set(), animations: new Set() };
+    controller = { timers: new Set(), animations: new Set(), sounds: new Set() };
     activeControllers.set(eventName, controller);
   }
   return controller;
@@ -180,6 +185,12 @@ export function showEvent(eventName, { onComplete, context } = {}) {
     el.autoplay = true;
     el.muted = true;
     el.playsInline = true;
+    // Video bleibt stumm; "sound" läuft über Web Audio und startet erst, wenn
+    // das Video wirklich abspielt - auf dem Pi dauert der Decoder-Start sonst
+    // hörbar länger als der Sound.
+    if (entry.sound) {
+      el.addEventListener("playing", () => trackSound(eventName, playSound(entry.sound)), { once: true });
+    }
     if (!entry.duration_ms) {
       el.addEventListener("ended", () => {
         el.remove();
@@ -189,6 +200,7 @@ export function showEvent(eventName, { onComplete, context } = {}) {
   } else {
     el = document.createElement("img");
     el.src = entry.src;
+    if (entry.sound) trackSound(eventName, playSound(entry.sound));
   }
 
   el.dataset.event = eventName;
@@ -752,6 +764,7 @@ export function clearEvent(eventName) {
   if (controller) {
     controller.timers.forEach((timer) => clearTimeout(timer));
     controller.animations.forEach((animation) => animation.cancel());
+    controller.sounds.forEach((source) => source.stop());
     activeControllers.delete(eventName);
   }
   layer.querySelectorAll(`[data-event="${eventName}"]`).forEach((el) => el.remove());

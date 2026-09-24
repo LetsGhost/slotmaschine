@@ -6,6 +6,8 @@ const SOUND_FILES = {
   win_small: "assets/audio/win_small.mp3",
   win_jackpot: "assets/audio/win_jackpot.mp3",
   lose: "assets/audio/lose.mp3",
+  // Auf you_lost.webm geschnitten: setzt mit dem Banner ein, endet mit dem Video.
+  you_died: "assets/audio/you_died.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
@@ -56,9 +58,11 @@ function resumeContext() {
   }
 }
 
+// Gibt die AudioBufferSourceNode zurück (oder null), damit Aufrufer den Sound
+// vorzeitig per .stop() abbrechen können - z.B. clearEvent() in effects.js.
 export function playSound(name) {
   const buffer = buffers.get(name);
-  if (!buffer) return;
+  if (!buffer) return null;
   resumeContext();
   const source = audioCtx.createBufferSource();
   source.buffer = buffer;
@@ -66,6 +70,7 @@ export function playSound(name) {
   gain.gain.value = SOUND_VOLUMES[name] ?? 1;
   source.connect(gain).connect(audioCtx.destination);
   source.start(0, SOUND_OFFSETS[name] ?? 0);
+  return source;
 }
 
 // Startet einen Sound als Endlosschleife (Loop-Bereich aus LOOP_REGIONS).
