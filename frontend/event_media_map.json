@@ -40,6 +40,11 @@
         "reveal_ms": 400,
         "fade_out_ms": 300,
         "position": { "top": 130, "left": 300, "width": 200, "height": 220 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/you_lost.webm",
+        "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
       }
     ]
   },
