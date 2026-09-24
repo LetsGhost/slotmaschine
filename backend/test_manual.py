@@ -1,9 +1,15 @@
-"""Manueller Test für Phase 1: verbindet per SocketIO-Client, zieht den Hebel
-(Mock-Modus) und protokolliert alle Events in der Konsole.
+"""Manueller Test: verbindet per SocketIO-Client, zieht den Hebel bzw.
+simuliert NFC-Kartenscans (Mock-Modus) und protokolliert alle Events.
 
 Nutzung:
     1. Server starten:  python app.py
     2. In zweitem Terminal: python test_manual.py
+
+Befehle:
+    <Enter>      Hebel ziehen
+    c <UID>      Karte <UID> auflegen (z.B. "c MOCK01"; zweimal = +100)
+    a            alle Konten anzeigen
+    q            beenden
 """
 
 import socketio
@@ -34,6 +40,28 @@ def on_payout(data):
 @sio.on("credits_update")
 def on_credits_update(data):
     print(f"[credits_update] {data}")
+
+
+@sio.on("account_created")
+def on_account_created(data):
+    print(f"[account_created] {data}")
+
+
+@sio.on("account_login")
+def on_account_login(data):
+    print(f"[account_login] {data}")
+
+
+@sio.on("account_topup")
+def on_account_topup(data):
+    print(f"[account_topup] {data}")
+
+
+@sio.on("debug_accounts")
+def on_debug_accounts(data):
+    print(f"[debug_accounts] aktiv={data['active_uid']}")
+    for uid, acc in data["accounts"].items():
+        print(f"    {uid:>20}: {acc['credits']}")
 
 
 @sio.on("error")

@@ -31,7 +31,35 @@ body:not(.debug-mode) #stage {
   transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
 }
 
-body:not(.debug-mode) #debug-panel {
+body:not(.debug-mode) #card-toast {
+  position: absolute;
+  top: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  max-width: 560px;
+  padding: 6px 16px;
+  border: 2px solid #c98f22;
+  background: rgba(6, 20, 46, 0.92);
+  color: #fff3b0;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+#card-toast.visible {
+  opacity: 1;
+}
+
+#card-toast[data-variant="error"] {
+  border-color: #ff5252;
+}
+
+#debug-panel {
   display: none;
 }
 
@@ -62,6 +90,34 @@ body:not(.debug-mode) #debug-panel {
   position: absolute;
 }
 
+#card-toast {
+  position: absolute;
+  top: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  max-width: 560px;
+  padding: 6px 16px;
+  border: 2px solid #c98f22;
+  background: rgba(6, 20, 46, 0.92);
+  color: #fff3b0;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+#card-toast.visible {
+  opacity: 1;
+}
+
+#card-toast[data-variant="error"] {
+  border-color: #ff5252;
+}
+
 #debug-panel {
   max-width: 800px;
   margin: 10px auto;
@@ -75,6 +131,15 @@ body:not(.debug-mode) #debug-panel {
 
 #debug-panel button {
   cursor: pointer;
+}
+
+#debug-panel .debug-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid #555;
 }
 
 #debug-panel label {

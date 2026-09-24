@@ -1,6 +1,6 @@
 import { startSpin, stopOnSymbol, showWinningLines } from "./reels.js";
 import { GRID_COLS } from "./config.js";
-import { showEvent, showEventSequence, hideAll, clearEvent } from "./effects.js";
+import { showEvent, showEventSequence, hideAll, clearEvent, getEventNames } from "./effects.js";
 import { playSound, startLoop, setLoopVolume, stopLoop } from "./sound.js";
 import { playMultiplierReveals, clearMultipliers } from "./multipliers.js";
 
@@ -14,6 +14,11 @@ const socket = io();
 const creditsEl = document.getElementById("credits-value");
 const betEl = document.getElementById("bet-value");
 const winEl = document.getElementById("win-value");
+const cardToastEl = document.getElementById("card-toast");
+const debugCardEl = document.getElementById("debug-active-card");
+
+const CARD_TOAST_MS = 2500;
+let cardToastTimer = null;
 
 let idleTimer = null;
 // Vom "payout"-Event gepuffert und erst gezeigt, nachdem die Multiplikator-
@@ -90,9 +95,43 @@ socket.on("payout", (data) => {
   pendingPayout = data;
 });
 
+// credits === null heißt: keine Karte aktiv (z.B. nach Server-Neustart).
 socket.on("credits_update", (data) => {
-  creditsEl.textContent = data.credits;
+  creditsEl.textContent = data.credits ?? "—";
   if (data.bet != null) betEl.textContent = data.bet;
+  if (debugCardEl && "uid" in data) debugCardEl.textContent = data.uid ?? "keine";
+});
+
+// Kurzer Hinweis über dem Walzenfenster (Karten-Events, "Karte auflegen" etc.).
+function showCardToast(text, variant = "info") {
+  if (!cardToastEl) return;
+  cardToastEl.textContent = text;
+  cardToastEl.dataset.variant = variant;
+  cardToastEl.classList.add("visible");
+  clearTimeout(cardToastTimer);
+  cardToastTimer = setTimeout(() => cardToastEl.classList.remove("visible"), CARD_TOAST_MS);
+}
+
+// Karten-Events (backend/app.py: handle_card_scan). Die zugehörigen Overlays
+// "card_created"/"card_login"/"card_topup" sind optional - ohne Eintrag in
+// event_media_map.json wird nur der Text-Hinweis gezeigt.
+function onCardEvent(mediaEvent, text) {
+  resetIdleTimer();
+  showCardToast(text);
+  if (getEventNames().includes(mediaEvent)) showEvent(mediaEvent);
+  playSound(mediaEvent);
+}
+
+socket.on("account_created", () => {
+  onCardEvent("card_created", "Neue Karte registriert – erneut auflegen zum Aufladen");
+});
+
+socket.on("account_login", (data) => {
+  onCardEvent("card_login", `Karte angemeldet – Guthaben ${data.credits}`);
+});
+
+socket.on("account_topup", (data) => {
+  onCardEvent("card_topup", `+${data.amount} aufgeladen – Guthaben ${data.credits}`);
 });
 
 // Debug-Slider: Wahrscheinlichkeit (0-100%), dass ein Symbol beim Spin einen
@@ -118,6 +157,7 @@ socket.on("debug_multiplier_chance_update", (data) => {
 
 socket.on("error", (data) => {
   console.warn("Server error:", data.message);
+  showCardToast(data.message, "error");
 });
 
 function pullLever(socketEvent) {
@@ -142,6 +182,28 @@ document.getElementById("stage")?.addEventListener("pointerdown", () => {
 
 document.getElementById("debug-add-credits")?.addEventListener("click", () => {
   socket.emit("debug_add_credits", { amount: 100 });
+});
+
+// Debug: Kartenscans ohne PN532 simulieren (serverseitig nur im NFC-Mock-Modus).
+// Zweimal dieselbe UID = aufladen, andere UID = Kartenwechsel.
+document.querySelectorAll("[data-debug-nfc-uid]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    socket.emit("debug_nfc_scan", { uid: btn.dataset.debugNfcUid });
+  });
+});
+
+const debugNfcInput = document.getElementById("debug-nfc-uid");
+document.getElementById("debug-nfc-scan")?.addEventListener("click", () => {
+  const uid = debugNfcInput.value.trim();
+  if (uid) socket.emit("debug_nfc_scan", { uid });
+});
+
+document.getElementById("debug-accounts")?.addEventListener("click", () => {
+  socket.emit("debug_accounts");
+});
+
+socket.on("debug_accounts", (data) => {
+  console.table(Object.fromEntries(Object.entries(data.accounts).map(([uid, acc]) => [uid, { ...acc, active: uid === data.active_uid }])));
 });
 
 export { socket };

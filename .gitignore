@@ -2,3 +2,5 @@ venv/
 __pycache__/
 *.pyc
 credits.json
+accounts.json
+accounts.json.tmp

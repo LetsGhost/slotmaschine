@@ -81,6 +81,20 @@ keine) Multiplikatoren pro Spin zu bekommen. Wirkt nur im GPIO-Mock-Modus
 (`backend/app.py`, Event `debug_set_multiplier_chance`) und gilt bis zum
 nächsten Server-Neustart, dann greift wieder der Wert aus der JSON-Datei.
 
+**NFC-Kartenkonten (Phase 5):** Guthaben liegt pro Karten-UID in
+`backend/accounts.json` (`backend/accounts.py`). Unbekannte Karte → neues
+Konto (0), andere bekannte Karte → Login, dieselbe aktive Karte erneut
+auflegen → +100. Nach einem Server-Neustart ist keine Karte aktiv. Ohne PN532
+(PC) läuft `backend/nfc_handler.py` im Mock-Modus; Kartenscans dann simulieren
+über:
+
+- Debug-Panel: Buttons `Karte MOCK01..03` oder eigene UID eingeben,
+  `Konten → Konsole` zeigt alle Konten als Tabelle in der Browser-Konsole
+- `python test_manual.py`: `c MOCK01` = Karte auflegen, `a` = Konten anzeigen
+- HTTP: `curl -X POST localhost:5000/debug/nfc/MOCK01`,
+  `curl localhost:5000/debug/accounts` (nur im Debug-Modus)
+- Automatische Tests (ohne Server/Hardware): `cd backend && python -m unittest test_nfc -v`
+
 Da noch keine echten Bild-/Sound-Assets vorhanden sind, zeigt das Frontend
 Platzhalter (graue Kacheln mit Symbolnamen als Text, keine Sounds). Das
 Spiel ist damit voll funktionsfähig testbar, sieht/klingt aber erst nach

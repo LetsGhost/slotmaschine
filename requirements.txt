@@ -2,3 +2,6 @@ flask>=3.0
 flask-socketio>=5.3
 python-socketio[client]>=5.11
 gpiozero>=2.0
+# PN532 NFC-Reader (nur auf dem Pi; am PC läuft nfc_handler.py im Mock-Modus)
+adafruit-blinka>=8.0; sys_platform == "linux"
+adafruit-circuitpython-pn532>=2.4; sys_platform == "linux"

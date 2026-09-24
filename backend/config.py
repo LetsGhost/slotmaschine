@@ -30,7 +30,6 @@ PAYLINES = [
 
 SPIN_DURATION_MS = [1200, 1500, 1800, 2100, 2400]  # pro Spalte, damit sie nacheinander stoppen
 SPIN_COST = 10
-STARTING_CREDITS = 100
 
 # Balancing für das Multiplikator-Feature (Chance/Werte/Gewichte/Kombinationslogik)
 # liegt in dieser JSON-Datei statt hier in Python, damit es sich ohne Codeänderung
@@ -51,4 +50,13 @@ DEBUG_ENV_VAR = "SLOT_DEBUG"
 # frontend/js/socket.js löschen).
 TAP_TO_SPIN = True
 
-CREDITS_FILE = "credits.json"
+# NFC-Kartenkonten (siehe accounts.py / nfc_handler.py). Guthaben pro Karten-UID,
+# relativ zum backend-Ordner gespeichert.
+ACCOUNTS_FILE = "accounts.json"
+NFC_TOPUP_AMOUNT = 100
+# Solange muss eine Karte vom Reader weg sein, bevor erneutes Auflegen wieder
+# zählt - verhindert Mehrfach-Aufladen bei liegen gelassener Karte bzw. kurzen
+# Lesaussetzern.
+NFC_DEBOUNCE_SEC = 1.5
+NFC_POLL_INTERVAL_SEC = 0.2
+NFC_READ_TIMEOUT_SEC = 0.5
