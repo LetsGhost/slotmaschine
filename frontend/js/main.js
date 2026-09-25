@@ -45,7 +45,7 @@ const DEBUG_EVENT_CATEGORIES = [
   },
   { title: "Gewinn", events: ["mlg_meme_demo", "sybau_flyby_demo"] },
   { title: "Jackpot", events: ["gojo_float_demo", "coin_rain_reveal_demo"] },
-  { title: "Verlust", events: ["chest_reveal_demo"] },
+  { title: "Verlust", events: ["cursed_plankton_demo", "chest_reveal_demo"] },
   { title: "Multiplikator", events: ["sniper_count_demo", "case_open_demo"] },
   { title: "Spin", events: ["sausage_knife_demo"] },
   {

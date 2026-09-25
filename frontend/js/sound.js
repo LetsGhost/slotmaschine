@@ -19,6 +19,8 @@ const SOUND_FILES = {
   // +9dB; der erste Schlag (Sek. 3.2) fällt auf den Schnitt zur Gesichts-
   // Nahaufnahme in gojo_float.webm (Clip-Sek. 2.5).
   gojo_float: "assets/audio/gojo_float.mp3",
+  // Tonspur von cursed_plankton.webm (erste 4s des Originals, +8dB).
+  cursed_plankton: "assets/audio/cursed_plankton.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der

@@ -63,6 +63,12 @@
         "src": "assets/overlays/you_lost.webm",
         "sound": "you_died",
         "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/cursed_plankton.webm",
+        "sound": "cursed_plankton",
+        "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
       }
     ]
   },
@@ -230,6 +236,13 @@
     "src": "assets/overlays/gojo_float.webm",
     "sound": "gojo_float",
     "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+  },
+
+  "cursed_plankton_demo": {
+    "type": "video",
+    "src": "assets/overlays/cursed_plankton.webm",
+    "sound": "cursed_plankton",
+    "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
   },
 
   "chest_reveal_demo": {
