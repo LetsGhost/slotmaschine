@@ -21,6 +21,9 @@ const SOUND_FILES = {
   gojo_float: "assets/audio/gojo_float.mp3",
   // Tonspur von cursed_plankton.webm (erste 4s des Originals, +8dB).
   cursed_plankton: "assets/audio/cursed_plankton.mp3",
+  // Erste 4s von why_so_seroius_audio.wav (Original in assets_originals/audio),
+  // so lang wie die "fade"-Einblendung von jokijoki.png.
+  why_so_serious: "assets/audio/why_so_serious.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der

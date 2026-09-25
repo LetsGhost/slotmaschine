@@ -80,6 +80,13 @@ const ANIMATIONS = {
     ],
     outEasing: "ease-in",
   },
+  // Schlichtes Ein- und Ausblenden an Ort und Stelle, ohne Bewegung.
+  fade: {
+    in: [{ opacity: 0 }, { opacity: 1 }],
+    inEasing: "ease-out",
+    out: [{ opacity: 1 }, { opacity: 0 }],
+    outEasing: "ease-in",
+  },
 };
 
 export async function loadEventMediaMap(url = "event_media_map.json") {

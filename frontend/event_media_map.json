@@ -69,6 +69,16 @@
         "src": "assets/overlays/cursed_plankton.webm",
         "sound": "cursed_plankton",
         "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
+      },
+      {
+        "type": "image",
+        "src": "assets/overlays/jokijoki.png",
+        "sound": "why_so_serious",
+        "anim": "fade",
+        "fly_in_ms": 400,
+        "hold_ms": 3200,
+        "fly_out_ms": 400,
+        "position": { "top": 0, "left": 148, "width": 504, "height": 480 }
       }
     ]
   },
@@ -243,6 +253,17 @@
     "src": "assets/overlays/cursed_plankton.webm",
     "sound": "cursed_plankton",
     "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
+  },
+
+  "why_so_serious_demo": {
+    "type": "image",
+    "src": "assets/overlays/jokijoki.png",
+    "sound": "why_so_serious",
+    "anim": "fade",
+    "fly_in_ms": 400,
+    "hold_ms": 3200,
+    "fly_out_ms": 400,
+    "position": { "top": 0, "left": 148, "width": 504, "height": 480 }
   },
 
   "chest_reveal_demo": {
