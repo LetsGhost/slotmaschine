@@ -34,6 +34,12 @@
         "hold_ms": 1500,
         "fade_out_ms": 400,
         "position": { "top": 140, "left": 300, "width": 200, "height": 200 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/gojo_float.webm",
+        "sound": "gojo_float",
+        "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
       }
     ]
   },
@@ -217,6 +223,13 @@
     "hold_ms": 1800,
     "fly_out_ms": 500,
     "position": { "top": 115, "left": 275, "width": 250, "height": 250 }
+  },
+
+  "gojo_float_demo": {
+    "type": "video",
+    "src": "assets/overlays/gojo_float.webm",
+    "sound": "gojo_float",
+    "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
   },
 
   "chest_reveal_demo": {

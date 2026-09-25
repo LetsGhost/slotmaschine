@@ -15,6 +15,10 @@ const SOUND_FILES = {
   // Erste 3.3s von sybu_audio.webm (Original in assets_originals/audio),
   // passend zur Länge der "flyby"-Gewinnanimation mit sybau_domi.png.
   sybau: "assets/audio/sybau.mp3",
+  // Sek. 0.7-4.7 von gojo_fly_audio.webm (Original in assets_originals/audio),
+  // +9dB; der erste Schlag (Sek. 3.2) fällt auf den Schnitt zur Gesichts-
+  // Nahaufnahme in gojo_float.webm (Clip-Sek. 2.5).
+  gojo_float: "assets/audio/gojo_float.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
