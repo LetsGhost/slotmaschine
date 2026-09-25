@@ -24,6 +24,10 @@ const SOUND_FILES = {
   // Erste 4s von why_so_seroius_audio.wav (Original in assets_originals/audio),
   // so lang wie die "fade"-Einblendung von jokijoki.png.
   why_so_serious: "assets/audio/why_so_serious.mp3",
+  // Sek. 14-20 aus "the bouncing yaris of palmont city.mp4" (Original in
+  // assets_originals/overlays), -5dB; läuft zu bouncing_yaris.webm (Sek. 0-6,
+  // Auto per rembg/isnet-general-use freigestellt).
+  bouncing_yaris: "assets/audio/bouncing_yaris.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der

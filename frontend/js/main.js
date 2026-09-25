@@ -43,7 +43,7 @@ const DEBUG_EVENT_CATEGORIES = [
     title: "Spiel-Events (Pool)",
     events: ["win_small", "win_jackpot", "lose", "multiplier_hit", "spin_animation", "lever_pull", "idle_attract"],
   },
-  { title: "Gewinn", events: ["mlg_meme_demo", "sybau_flyby_demo"] },
+  { title: "Gewinn", events: ["mlg_meme_demo", "sybau_flyby_demo", "bouncing_yaris_demo"] },
   { title: "Jackpot", events: ["gojo_float_demo", "coin_rain_reveal_demo"] },
   { title: "Verlust", events: ["cursed_plankton_demo", "why_so_serious_demo", "chest_reveal_demo"] },
   { title: "Multiplikator", events: ["sniper_count_demo", "case_open_demo"] },

@@ -16,6 +16,12 @@
         "hold_ms": 1800,
         "fly_out_ms": 500,
         "position": { "top": 115, "left": 275, "width": 250, "height": 250 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/bouncing_yaris.webm",
+        "sound": "bouncing_yaris",
+        "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
       }
     ]
   },
@@ -264,6 +270,13 @@
     "hold_ms": 3200,
     "fly_out_ms": 400,
     "position": { "top": 0, "left": 148, "width": 504, "height": 480 }
+  },
+
+  "bouncing_yaris_demo": {
+    "type": "video",
+    "src": "assets/overlays/bouncing_yaris.webm",
+    "sound": "bouncing_yaris",
+    "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
   },
 
   "chest_reveal_demo": {
