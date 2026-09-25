@@ -10,6 +10,11 @@ const SOUND_FILES = {
   you_died: "assets/audio/you_died.mp3",
   // Ton zum Webcam-Clip der "case_open"-Animation (Sek. 11-13 des Originalvideos).
   case_cam: "assets/audio/case_cam.mp3",
+  // Tonspur von mlg_meme.webm (Gewinn-Animation).
+  mlg_meme: "assets/audio/mlg_meme.mp3",
+  // Erste 3.3s von sybu_audio.webm (Original in assets_originals/audio),
+  // passend zur Länge der "flyby"-Gewinnanimation mit sybau_domi.png.
+  sybau: "assets/audio/sybau.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der

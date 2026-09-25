@@ -62,22 +62,25 @@
   </div>
 
   <div id="debug-panel">
-    <strong>Debug:</strong> Leertaste = Hebel ziehen.
-    <button type="button" id="debug-add-credits">+100 Credits</button>
-    <label for="debug-multiplier-chance">
-      Multiplikator-Chance: <span id="debug-multiplier-chance-value">0%</span>
-      <input type="range" id="debug-multiplier-chance" min="0" max="100" step="1" value="0" />
-    </label>
-    <span class="debug-group">
-      NFC (aktiv: <code id="debug-active-card">keine</code>):
+    <fieldset class="debug-section">
+      <legend>Spiel</legend>
+      <span>Leertaste = Hebel ziehen</span>
+      <button type="button" id="debug-add-credits">+100 Credits</button>
+      <label for="debug-multiplier-chance">
+        Multiplikator-Chance: <span id="debug-multiplier-chance-value">0%</span>
+        <input type="range" id="debug-multiplier-chance" min="0" max="100" step="1" value="0" />
+      </label>
+    </fieldset>
+    <fieldset class="debug-section">
+      <legend>NFC (aktiv: <code id="debug-active-card">keine</code>)</legend>
       <button type="button" data-debug-nfc-uid="MOCK01">Karte MOCK01</button>
       <button type="button" data-debug-nfc-uid="MOCK02">Karte MOCK02</button>
       <button type="button" data-debug-nfc-uid="MOCK03">Karte MOCK03</button>
       <input type="text" id="debug-nfc-uid" placeholder="eigene UID" size="10" />
       <button type="button" id="debug-nfc-scan">Scannen</button>
       <button type="button" id="debug-accounts" title="Alle Konten als Tabelle in die Browser-Konsole">Konten → Konsole</button>
-    </span>
-    Events manuell testen:
+    </fieldset>
+    <!-- Event-Buttons werden von main.js (buildDebugPanel) nach Kategorie ergänzt. -->
   </div>
 
   <script src="js/vendor/socket.io.min.js"></script>

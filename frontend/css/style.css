@@ -123,23 +123,31 @@ body:not(.debug-mode) #card-toast {
   margin: 10px auto;
   color: #ccc;
   font-size: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
 }
 
 #debug-panel button {
   cursor: pointer;
 }
 
-#debug-panel .debug-group {
-  display: inline-flex;
+#debug-panel .debug-section {
+  display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   align-items: center;
   gap: 4px;
-  padding: 2px 6px;
+  margin: 0;
+  padding: 4px 8px 8px;
   border: 1px solid #555;
+  border-radius: 4px;
+}
+
+#debug-panel .debug-section legend {
+  padding: 0 4px;
+  color: #fff3b0;
+  font-weight: 700;
 }
 
 #debug-panel label {

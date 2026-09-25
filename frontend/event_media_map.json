@@ -3,8 +3,19 @@
     "anim_pool": [
       {
         "type": "video",
-        "src": "assets/overlays/win_small.webm",
-        "duration_ms": 2000
+        "src": "assets/overlays/mlg_meme.webm",
+        "sound": "mlg_meme",
+        "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+      },
+      {
+        "type": "image",
+        "src": "assets/overlays/sybau_domi.png",
+        "sound": "sybau",
+        "anim": "flyby",
+        "fly_in_ms": 500,
+        "hold_ms": 1800,
+        "fly_out_ms": 500,
+        "position": { "top": 115, "left": 275, "width": 250, "height": 250 }
       }
     ]
   },
@@ -188,6 +199,24 @@
     "anim": "case_open",
     "value": 6,
     "cam_position": { "top": 0, "left": 0, "width": 186, "height": 144 }
+  },
+
+  "mlg_meme_demo": {
+    "type": "video",
+    "src": "assets/overlays/mlg_meme.webm",
+    "sound": "mlg_meme",
+    "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+  },
+
+  "sybau_flyby_demo": {
+    "type": "image",
+    "src": "assets/overlays/sybau_domi.png",
+    "sound": "sybau",
+    "anim": "flyby",
+    "fly_in_ms": 500,
+    "hold_ms": 1800,
+    "fly_out_ms": 500,
+    "position": { "top": 115, "left": 275, "width": 250, "height": 250 }
   },
 
   "chest_reveal_demo": {
