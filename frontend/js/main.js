@@ -49,6 +49,18 @@ function buildDebugPanel() {
     btn.addEventListener("click", () => showEvent(name));
     panel.appendChild(btn);
   });
+
+  // Case Opening mit zufälligem Multiplikator (wie ein echter Treffer über
+  // context.value), statt immer des festen "value" aus case_open_demo.
+  const caseBtn = document.createElement("button");
+  caseBtn.type = "button";
+  caseBtn.textContent = "Case Opening 🎰";
+  caseBtn.title = 'showEvent("case_open_demo") mit zufälligem Wert x2-x7';
+  caseBtn.addEventListener("click", () => {
+    const value = 2 + Math.floor(Math.random() * 6);
+    showEvent("case_open_demo", { context: { value } });
+  });
+  panel.appendChild(caseBtn);
 }
 
 async function bootstrap() {

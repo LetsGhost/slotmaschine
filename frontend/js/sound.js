@@ -8,6 +8,8 @@ const SOUND_FILES = {
   lose: "assets/audio/lose.mp3",
   // Auf you_lost.webm geschnitten: setzt mit dem Banner ein, endet mit dem Video.
   you_died: "assets/audio/you_died.mp3",
+  // Ton zum Webcam-Clip der "case_open"-Animation (Sek. 11-13 des Originalvideos).
+  case_cam: "assets/audio/case_cam.mp3",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
@@ -22,6 +24,7 @@ const SOUND_OFFSETS = {
 // die anderen Sounds sonst übertönen.
 const SOUND_VOLUMES = {
   gunshot: 0.6,
+  case_cam: 0.7,
 };
 
 // Loop-Bereich (Sekunden) für Dauergeräusche. Die Spin-Datei tickt bis ~1.05s

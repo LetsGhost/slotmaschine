@@ -191,7 +191,9 @@ export function showEvent(eventName, { onComplete, context } = {}) {
     if (entry.sound) {
       el.addEventListener("playing", () => trackSound(eventName, playSound(entry.sound)), { once: true });
     }
-    if (!entry.duration_ms) {
+    // Mit "anim" steuert die Animation selbst das Ende (z.B. "case_open":
+    // der Clip bleibt nach "ended" auf dem letzten Frame stehen).
+    if (!entry.duration_ms && !entry.anim) {
       el.addEventListener("ended", () => {
         el.remove();
         onComplete?.();
@@ -230,6 +232,11 @@ export function showEvent(eventName, { onComplete, context } = {}) {
 
   if (entry.anim === "sniper_count") {
     runSniperCount(eventName, el, entry, pos, onComplete, context);
+    return;
+  }
+
+  if (entry.anim === "case_open") {
+    runCaseOpen(eventName, el, entry, onComplete, context);
     return;
   }
 
@@ -520,6 +527,284 @@ function runSniperCount(eventName, el, entry, pos, onComplete, context) {
     wrapper.remove();
     onComplete?.();
   })();
+}
+
+// "case_open": CS:GO-Case-Opening nachgebaut (Vorlage: assets_originals/CSGO
+// case opening animation.zip, case-reel.jsx). Eine Walze aus zufälligen
+// Multiplikator-Kacheln rast durch, bremst stark ab (easeOutQuint), bleibt
+// knapp neben der Mitte stehen und rutscht dann auf die Markierung. Sie landet
+// immer auf einer goldenen "?"-Kachel (wie das Rare-Special-Item in CS:GO),
+// die erst nach dem Einrasten ihren Wert aufdeckt: `context.value` (Fallback
+// `entry.value`, sonst 2). Vereinzelte goldene "?"-Kacheln tauchen auch als
+// Köder unter den Füllkacheln auf (mystery_chance, Default 0.05).
+// `entry.src` ist der Webcam-Clip oben links (Reaktion aus dem Originalvideo):
+// Der Clip ist auf die Gesamtdauer der Animation geschnitten (7.7s bei den
+// Default-Timings) und startet mit ihr, die Reaktion fällt dann genau aufs
+// Einrasten; `entry.sound` läuft synchron dazu. Füllkacheln werden gewichtet aus
+// values/weights gewürfelt (Default wie backend/multiplier_config.json).
+// Eigene Felder (alle optional): values, weights, spin_ms (Default 5000),
+// snap_ms (400), hold_ms (1600), fade_in_ms (300), fade_out_ms (400),
+// cam_position, land_sound (Default "reel_stop", false = stumm), title,
+// subtitle, label_format (Default "x{value}"), mystery_chance.
+const CASE_TIERS = [
+  { label: "Mil-Spec", color: "#4b69ff" },
+  { label: "Restricted", color: "#8847ff" },
+  { label: "Classified", color: "#d32ce6" },
+  { label: "Covert", color: "#eb4b4b" },
+  { label: "Rare Special", color: "#e4ae39" },
+];
+const CASE_CELL_W = 130;
+const CASE_CELL_H = 96;
+const CASE_PITCH = CASE_CELL_W + 6;
+const CASE_COUNT = 48;
+const CASE_WIN_INDEX = 40;
+const CASE_START_POS = 3;
+
+// x2 -> Mil-Spec, x3 -> Restricted, ... ab x6 Gold.
+function caseTier(value) {
+  return CASE_TIERS[Math.min(Math.max(Math.round(value) - 2, 0), CASE_TIERS.length - 1)];
+}
+
+const CASE_GOLD = CASE_TIERS[CASE_TIERS.length - 1];
+
+// Goldene Münze mit "?" - verdeckt den Wert der Gewinnkachel.
+function mysteryEmblem() {
+  const emblem = document.createElement("div");
+  emblem.style.cssText =
+    "width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;" +
+    "background:radial-gradient(circle at 35% 30%, #fff3c4 0%, #f1c95a 35%, #c8901f 75%, #8a5d12 100%);" +
+    "border:3px solid #f6dc8c;box-shadow:0 0 14px rgba(228,174,57,0.8), inset 0 -4px 6px rgba(0,0,0,0.35);" +
+    "font-size:40px;font-weight:900;color:#fffbe8;text-shadow:0 2px 3px rgba(90,55,5,0.9)";
+  emblem.textContent = "?";
+  return emblem;
+}
+
+function rollWeighted(values, weights) {
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  let roll = Math.random() * total;
+  for (let i = 0; i < values.length; i += 1) {
+    roll -= weights[i];
+    if (roll <= 0) return values[i];
+  }
+  return values[values.length - 1];
+}
+
+function runCaseOpen(eventName, camEl, entry, onComplete, context) {
+  const value = context?.value ?? entry.value ?? 2;
+  const values = entry.values ?? [2, 3, 4, 5, 6, 7];
+  const weights = entry.weights ?? [35, 25, 16, 12, 7, 5];
+  const spinMs = entry.spin_ms ?? 5000;
+  const snapMs = entry.snap_ms ?? 400;
+  const holdMs = entry.hold_ms ?? 1600;
+  const fadeInMs = entry.fade_in_ms ?? 300;
+  const fadeOutMs = entry.fade_out_ms ?? 400;
+  const landSound = entry.land_sound ?? "reel_stop";
+  const labelFormat = entry.label_format ?? "x{value}";
+  const camPos = entry.cam_position || { top: 0, left: 0, width: 186, height: 144 };
+  const { width: W, height: H } = DISPLAY;
+  const reelTop = Math.round((H - CASE_CELL_H) / 2);
+  const mysteryChance = entry.mystery_chance ?? 0.05;
+  const winTier = CASE_GOLD;
+
+  const wrapper = document.createElement("div");
+  wrapper.dataset.event = eventName;
+  wrapper.style.position = "absolute";
+  wrapper.style.inset = "0";
+  wrapper.style.overflow = "hidden";
+  wrapper.style.fontFamily = '"Segoe UI", Arial, sans-serif';
+  wrapper.style.background =
+    "radial-gradient(ellipse at 50% 50%, rgba(70,62,52,0.94) 0%, rgba(28,26,24,0.97) 75%)";
+  layer.appendChild(wrapper);
+
+  const header = document.createElement("div");
+  header.style.cssText =
+    "position:absolute;left:0;right:0;top:14px;text-align:center;color:#e8e8ee;text-shadow:0 2px 6px rgba(0,0,0,0.6)";
+  header.innerHTML =
+    `<div style="font-size:22px;font-weight:600">${entry.title ?? "Unlock Container"}</div>` +
+    `<div style="font-size:12px;opacity:0.8">${entry.subtitle ?? "Multiplikator Case"}</div>`;
+  wrapper.appendChild(header);
+
+  // Walze: Streifen aus Kacheln, der per translateX unter der Markierung durchläuft.
+  const reelWindow = document.createElement("div");
+  const fade = "linear-gradient(90deg, transparent 0%, #000 16%, #000 84%, transparent 100%)";
+  reelWindow.style.cssText = `position:absolute;left:0;top:${reelTop - 20}px;width:${W}px;height:${CASE_CELL_H + 40}px;overflow:hidden`;
+  reelWindow.style.webkitMaskImage = fade;
+  reelWindow.style.maskImage = fade;
+  wrapper.appendChild(reelWindow);
+
+  const strip = document.createElement("div");
+  strip.style.cssText = `position:absolute;left:0;top:20px;height:${CASE_CELL_H}px;will-change:transform`;
+  reelWindow.appendChild(strip);
+
+  const cells = [];
+  let winEmblem = null;
+  let winNumber = null;
+  for (let i = 0; i < CASE_COUNT; i += 1) {
+    const isWin = i === CASE_WIN_INDEX;
+    // Keine Köder-"?" direkt neben der Gewinnkachel, sonst ist beim Einrasten unklar, welche gemeint ist.
+    const isMystery = isWin || (Math.abs(i - CASE_WIN_INDEX) > 1 && Math.random() < mysteryChance);
+    const cellValue = isWin ? value : rollWeighted(values, weights);
+    const { color } = isMystery ? CASE_GOLD : caseTier(cellValue);
+    const cell = document.createElement("div");
+    cell.style.cssText =
+      `position:absolute;left:${i * CASE_PITCH}px;top:0;width:${CASE_CELL_W}px;height:${CASE_CELL_H}px;` +
+      "display:flex;flex-direction:column;" +
+      `background:linear-gradient(180deg, rgba(58,58,66,0.95) 0%, rgba(74,74,88,0.95) 45%, ${color}99 100%), rgb(60,60,72)`;
+
+    const face = document.createElement("div");
+    face.style.cssText = "position:relative;flex:1;display:flex;align-items:center;justify-content:center";
+    const number = document.createElement("div");
+    number.style.cssText = "font-size:48px;font-weight:800;color:#f0f0f4;text-shadow:0 3px 6px rgba(0,0,0,0.55)";
+    number.textContent = labelFormat.replace("{value}", cellValue);
+    if (isMystery) {
+      const emblem = mysteryEmblem();
+      face.appendChild(emblem);
+      if (isWin) {
+        // Zahl liegt verdeckt über dem Emblem und wird erst beim Reveal eingeblendet.
+        number.style.position = "absolute";
+        number.style.opacity = "0";
+        number.style.color = "#ffe9a8";
+        number.style.textShadow = "0 0 12px rgba(228,174,57,0.9), 0 3px 6px rgba(0,0,0,0.6)";
+        face.appendChild(number);
+        winEmblem = emblem;
+        winNumber = number;
+      }
+    } else {
+      face.appendChild(number);
+    }
+    const bar = document.createElement("div");
+    bar.style.cssText = `height:5px;background:${color}`;
+    cell.append(face, bar);
+    strip.appendChild(cell);
+    cells.push(cell);
+  }
+
+  const marker = document.createElement("div");
+  marker.style.cssText =
+    `position:absolute;left:${W / 2 - 1.5}px;top:${reelTop - 14}px;width:3px;height:${CASE_CELL_H + 28}px;` +
+    "background:#e6c619;box-shadow:0 0 6px #e6c619";
+  wrapper.appendChild(marker);
+
+  const label = document.createElement("div");
+  label.style.cssText =
+    `position:absolute;left:0;right:0;top:${reelTop + CASE_CELL_H + 30}px;text-align:center;opacity:0;` +
+    "text-shadow:0 2px 6px rgba(0,0,0,0.6)";
+  label.innerHTML =
+    `<div style="font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${winTier.color}">${winTier.label}</div>` +
+    `<div style="font-size:34px;font-weight:800;color:#fff">${labelFormat.replace("{value}", value)} Multiplikator</div>`;
+  wrapper.appendChild(label);
+
+  // Webcam-Clip oben links, läuft per autoplay (showEvent) ab Animationsstart.
+  camEl.style.top = `${camPos.top}px`;
+  camEl.style.left = `${camPos.left}px`;
+  camEl.style.width = `${camPos.width}px`;
+  camEl.style.height = `${camPos.height}px`;
+  camEl.style.objectFit = "cover";
+  camEl.style.zIndex = "1";
+  wrapper.appendChild(camEl);
+
+  // Position in Kachel-Einheiten -> translateX, sodass Kachel `pos` mittig unter der Markierung liegt.
+  const xAt = (pos) => W / 2 - CASE_CELL_W / 2 - pos * CASE_PITCH;
+  // Wie im Original: nicht exakt mittig stehen bleiben, dann auf die Mitte rutschen.
+  const landing = (Math.random() - 0.5) * 0.7;
+
+  trackAnimation(eventName, wrapper.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fadeInMs, fill: "forwards" }));
+
+  const spinPlayer = strip.animate(
+    [
+      { transform: `translateX(${xAt(CASE_START_POS)}px)` },
+      { transform: `translateX(${xAt(CASE_WIN_INDEX + landing)}px)` },
+    ],
+    // easeOutQuint
+    { duration: spinMs, delay: fadeInMs, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
+  );
+  trackAnimation(eventName, spinPlayer);
+
+  spinPlayer.onfinish = () => {
+    if (landSound) playSound(landSound);
+
+    trackAnimation(
+      eventName,
+      strip.animate(
+        [
+          { transform: `translateX(${xAt(CASE_WIN_INDEX + landing)}px)` },
+          { transform: `translateX(${xAt(CASE_WIN_INDEX)}px)` },
+        ],
+        { duration: snapMs, easing: "ease-in-out", fill: "forwards" }
+      )
+    );
+
+    trackTimer(
+      eventName,
+      setTimeout(() => {
+        const winCell = cells[CASE_WIN_INDEX];
+        trackAnimation(
+          eventName,
+          winCell.animate(
+            [
+              { transform: "translateY(0) scale(1)", boxShadow: `0 0 0 ${winTier.color}` },
+              { transform: "translateY(-6px) scale(1.08)", boxShadow: `0 0 26px ${winTier.color}` },
+            ],
+            { duration: 450, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", fill: "forwards" }
+          )
+        );
+        // Reveal: "?"-Münze pumpt kurz auf und dreht sich weg, dann springt die Zahl heraus.
+        trackAnimation(
+          eventName,
+          winEmblem.animate(
+            [
+              { transform: "scale(1) rotateY(0deg)", opacity: 1, filter: "brightness(1)" },
+              { transform: "scale(1.3) rotateY(0deg)", opacity: 1, filter: "brightness(1.8)", offset: 0.45 },
+              { transform: "scale(0.6) rotateY(90deg)", opacity: 0, filter: "brightness(2)" },
+            ],
+            { duration: 500, easing: "ease-in", fill: "forwards" }
+          )
+        );
+        trackAnimation(
+          eventName,
+          winNumber.animate(
+            [
+              { transform: "scale(0.3)", opacity: 0 },
+              { transform: "scale(1.25)", opacity: 1, offset: 0.6 },
+              { transform: "scale(1)", opacity: 1 },
+            ],
+            { duration: 450, delay: 400, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", fill: "forwards" }
+          )
+        );
+        for (let i = CASE_WIN_INDEX - 5; i <= CASE_WIN_INDEX + 5; i += 1) {
+          if (i === CASE_WIN_INDEX || !cells[i]) continue;
+          trackAnimation(eventName, cells[i].animate([{ opacity: 1 }, { opacity: 0.4 }], { duration: 450, fill: "forwards" }));
+        }
+        trackAnimation(eventName, marker.animate([{ opacity: 1 }, { opacity: 0.1 }], { duration: 450, fill: "forwards" }));
+        trackAnimation(
+          eventName,
+          label.animate(
+            [
+              { transform: "translateY(10px)", opacity: 0 },
+              { transform: "translateY(0)", opacity: 1 },
+            ],
+            { duration: 450, delay: 700, easing: "ease-out", fill: "forwards" }
+          )
+        );
+
+        trackTimer(
+          eventName,
+          setTimeout(() => {
+            const outPlayer = wrapper.animate([{ opacity: 1 }, { opacity: 0 }], {
+              duration: fadeOutMs,
+              easing: "ease-out",
+              fill: "forwards",
+            });
+            trackAnimation(eventName, outPlayer);
+            outPlayer.onfinish = () => {
+              wrapper.remove();
+              onComplete?.();
+            };
+          }, holdMs)
+        );
+      }, snapMs)
+    );
+  };
 }
 
 // "chest_reveal": Kiste erscheint episch mit rotierendem Lichtstrahlen-Glow, wackelt

@@ -79,16 +79,6 @@
   "multiplier_hit": {
     "anim_pool": [
       {
-        "type": "image",
-        "src": "assets/overlays/flyby_placeholder.svg",
-        "anim": "drop_bounce",
-        "fly_in_ms": 300,
-        "hold_ms": 500,
-        "fly_out_ms": 300,
-        "position": { "top": 150, "left": 300, "width": 200, "height": 180 },
-        "weight": 1
-      },
-      {
         "type": "gif",
         "src": "assets/overlays/sniper_shoot.gif",
         "anim": "sniper_count",
@@ -104,6 +94,18 @@
         "label_format": "x{value}",
         "screen_shake": true,
         "muzzle_flash": true,
+        "weight": 3
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/case_cam.webm",
+        "sound": "case_cam",
+        "anim": "case_open",
+        "spin_ms": 5000,
+        "hold_ms": 1600,
+        "cam_position": { "top": 0, "left": 0, "width": 186, "height": 144 },
+        "values": [2, 3, 4, 5, 6, 7],
+        "weights": [35, 25, 16, 12, 7, 5],
         "weight": 3
       }
     ]
@@ -177,6 +179,15 @@
     "label_format": "x{value}",
     "screen_shake": true,
     "muzzle_flash": true
+  },
+
+  "case_open_demo": {
+    "type": "video",
+    "src": "assets/overlays/case_cam.webm",
+    "sound": "case_cam",
+    "anim": "case_open",
+    "value": 6,
+    "cam_position": { "top": 0, "left": 0, "width": 186, "height": 144 }
   },
 
   "chest_reveal_demo": {
