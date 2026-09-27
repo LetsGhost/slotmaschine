@@ -216,11 +216,6 @@
   letter-spacing: 2px;
   color: var(--gold);
 }
-/* Einsatz-Feld ist antippbar (#frame hat sonst pointer-events: none) */
-.frame-plate-bet {
-  pointer-events: auto;
-  cursor: pointer;
-}
 .frame-plate-value {
   font-weight: 900;
   font-size: 17px;

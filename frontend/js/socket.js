@@ -1,5 +1,5 @@
 import { startSpin, stopOnSymbol, showWinningLines } from "./reels.js";
-import { GRID_COLS } from "./config.js";
+import { GRID_COLS, DISPLAY, SPIN_TAP_AREA } from "./config.js";
 import { showEvent, showEventSequence, hideAll, clearEvent, getEventNames } from "./effects.js";
 import { playSound, startLoop, setLoopVolume, stopLoop } from "./sound.js";
 import { playMultiplierReveals, clearMultipliers } from "./multipliers.js";
@@ -173,19 +173,24 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// VORÜBERGEHEND: Tippen/Klicken auf die Stage löst einen Spin aus, solange der
-// Hebel noch nicht verbaut ist (serverseitig abschaltbar über
-// config.TAP_TO_SPIN in backend/config.py).
-document.getElementById("stage")?.addEventListener("pointerdown", () => {
-  pullLever("tap_pull_lever");
-});
-
-// Tipp auf das EINSATZ-Feld schaltet zur nächsten Einsatzstufe
-// (config.BET_STEPS) - ohne dabei den Tap-to-Spin der Stage auszulösen.
-document.getElementById("bet-plate")?.addEventListener("pointerdown", (e) => {
-  e.stopPropagation();
-  resetIdleTimer();
-  socket.emit("cycle_bet");
+// Tippen/Klicken auf die Stage: innerhalb des Walzenfensters (inkl. Goldrahmen,
+// SPIN_TAP_AREA) löst einen Spin aus - VORÜBERGEHEND, solange der Hebel noch
+// nicht verbaut ist (serverseitig abschaltbar über config.TAP_TO_SPIN in
+// backend/config.py). Überall sonst (blauer Rahmen mit Guthaben/Einsatz/Gewinn)
+// schaltet zur nächsten Einsatzstufe (config.BET_STEPS).
+const stageEl = document.getElementById("stage");
+stageEl?.addEventListener("pointerdown", (e) => {
+  // Stage ist per CSS-Transform skaliert -> Klickposition auf 800x480 zurückrechnen.
+  const rect = stageEl.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) * DISPLAY.width) / rect.width;
+  const y = ((e.clientY - rect.top) * DISPLAY.height) / rect.height;
+  const a = SPIN_TAP_AREA;
+  if (x >= a.left && x < a.left + a.width && y >= a.top && y < a.top + a.height) {
+    pullLever("tap_pull_lever");
+  } else {
+    resetIdleTimer();
+    socket.emit("cycle_bet");
+  }
 });
 
 document.getElementById("debug-add-credits")?.addEventListener("click", () => {

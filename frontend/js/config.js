@@ -1,4 +1,7 @@
 export const DISPLAY = { width: 800, height: 480 };
+// Tipp-Bereich für den Spin: Walzenfenster inkl. Goldrahmen
+// (entspricht .frame-window-border in css/frame.css).
+export const SPIN_TAP_AREA = { top: 86, left: 86, width: 628, height: 308 };
 
 // Position/Größe des Walzen-Fensters im Rahmen (css/frame.css, Vorlage assets/frame/Slot Rahmen(1).html).
 // Muss mit dem Fenster in css/frame.css (.frame-bg-*, .frame-window-*) übereinstimmen.
