@@ -3,9 +3,6 @@ const SOUND_FILES = {
   spin: "assets/audio/game/spin-232536.mp3",
   reel_stop: "assets/audio/game/ping-82822.mp3",
   gunshot: "assets/audio/animations/multiplier/gun-shots-from-a-distance-5-96388.mp3",
-  win_small: "assets/audio/results/win_small.mp3",
-  win_jackpot: "assets/audio/results/win_jackpot.mp3",
-  lose: "assets/audio/results/lose.mp3",
   // Auf you_lost.webm geschnitten: setzt mit dem Banner ein, endet mit dem Video.
   you_died: "assets/audio/animations/lose/you_died.mp3",
   // Ton zum Webcam-Clip der "case_open"-Animation (Sek. 11-13 des Originalvideos).
@@ -71,6 +68,12 @@ const audioCtx = new AudioContextClass();
 const buffers = new Map();
 const activeLoops = new Map();
 
+// Sound-Pools: Poolname -> Liste von Buffer-Namen (= Dateipfad). Kommen
+// automatisch aus den Unterordnern von assets/audio/results (Backend-Route
+// /audio/pools) - Datei in den Ordner legen genügt, kein Eintrag hier nötig.
+const SOUND_POOLS_URL = "audio/pools";
+const soundPools = new Map();
+
 // Bus-Struktur: Musik (Track-Gain -> Duck-Gain -> musicBus) und Effekte
 // (sfxBus) laufen getrennt in den masterBus, damit sich beide unabhängig
 // regeln lassen und die Musik unter Animations-Sounds abgesenkt werden kann.
@@ -85,20 +88,43 @@ masterBus.connect(audioCtx.destination);
 
 const BUSES = { master: masterBus, music: musicBus, sfx: sfxBus };
 
-export async function preloadSounds() {
+async function loadBuffer(name, url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const arrayBuffer = await res.arrayBuffer();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    buffers.set(name, audioBuffer);
+    return true;
+  } catch (err) {
+    console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
+    return false;
+  }
+}
+
+async function loadSoundPools() {
+  let pools;
+  try {
+    const res = await fetch(SOUND_POOLS_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    pools = await res.json();
+  } catch (err) {
+    console.warn("Sound-Pools konnten nicht geladen werden:", err.message);
+    return;
+  }
   await Promise.all(
-    Object.entries(SOUND_FILES).map(async ([name, url]) => {
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const arrayBuffer = await res.arrayBuffer();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        buffers.set(name, audioBuffer);
-      } catch (err) {
-        console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
-      }
+    Object.entries(pools).map(async ([pool, urls]) => {
+      const loaded = await Promise.all(urls.map((url) => loadBuffer(url, url)));
+      soundPools.set(pool, urls.filter((_, i) => loaded[i]));
     })
   );
+}
+
+export async function preloadSounds() {
+  await Promise.all([
+    ...Object.entries(SOUND_FILES).map(([name, url]) => loadBuffer(name, url)),
+    loadSoundPools(),
+  ]);
 }
 
 function resumeContext() {
@@ -130,7 +156,10 @@ export function playSound(name, { delayMs = 0, volume = 1, bus = "sfx" } = {}) {
 //   "name"                                  - einzelner Sound
 //   { "name": "x", "delay_ms": 300, "volume": 0.8 }
 //   { "pick": ["a", "b", ...] }             - zufällig einer davon
+//   { "pool": "win" }                       - zufällige Datei aus
+//                                             assets/audio/results/win/
 //   [ ...obige Formen... ]                  - alle gleichzeitig (Layering)
+// "delay_ms" und "volume" gelten bei "name" und "pool", "delay_ms" auch bei "pick".
 export function playSoundSpec(spec, { delayMs = 0 } = {}) {
   if (!spec) return [];
   if (typeof spec === "string") {
@@ -145,6 +174,13 @@ export function playSoundSpec(spec, { delayMs = 0 } = {}) {
     if (spec.pick.length === 0) return [];
     const choice = spec.pick[Math.floor(Math.random() * spec.pick.length)];
     return playSoundSpec(choice, { delayMs: ownDelay });
+  }
+  if (spec.pool) {
+    const files = soundPools.get(spec.pool) ?? [];
+    if (files.length === 0) return [];
+    const choice = files[Math.floor(Math.random() * files.length)];
+    const source = playSound(choice, { delayMs: ownDelay, volume: spec.volume ?? 1 });
+    return source ? [source] : [];
   }
   if (spec.name) {
     const source = playSound(spec.name, { delayMs: ownDelay, volume: spec.volume ?? 1 });

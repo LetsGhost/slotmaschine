@@ -79,6 +79,29 @@ def index():
     return Response(html, mimetype="text/html")
 
 
+SOUND_POOL_DIR = os.path.join(FRONTEND_DIR, "assets", "audio", "results")
+SOUND_POOL_EXTENSIONS = (".mp3", ".ogg", ".wav")
+
+
+@app.route("/audio/pools", methods=["GET"])
+def audio_pools():
+    # Jeder Unterordner von assets/audio/results ist ein Sound-Pool (z.B.
+    # "win", "jackpot", "lose") - neue Dateien dort reinlegen genügt, das
+    # Frontend (sound.js) lädt sie beim Start und wählt pro Abspielen zufällig.
+    pools = {}
+    if os.path.isdir(SOUND_POOL_DIR):
+        for pool in sorted(os.listdir(SOUND_POOL_DIR)):
+            pool_dir = os.path.join(SOUND_POOL_DIR, pool)
+            if not os.path.isdir(pool_dir):
+                continue
+            pools[pool] = [
+                f"assets/audio/results/{pool}/{name}"
+                for name in sorted(os.listdir(pool_dir))
+                if name.lower().endswith(SOUND_POOL_EXTENSIONS)
+            ]
+    return jsonify(pools)
+
+
 @app.route("/debug/pull", methods=["POST"])
 def debug_pull():
     if not gpio.is_mock:

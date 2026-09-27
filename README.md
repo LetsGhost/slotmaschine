@@ -134,8 +134,8 @@ wenn alle Assets schneller fertig geladen sind. Danach blendet er sanft aus.
   `lose.gif`, `idle_attract.gif`, `lever_flash.png` (siehe
   `event_media_map.json`, dort auch beliebig erweiterbar).
 - `frontend/assets/audio/game/lever.mp3` - Hebel-Sound.
-- `frontend/assets/audio/results/` - `win_small.mp3`, `win_jackpot.mp3`,
-  `lose.mp3` (Ergebnis-Jingles, laufen zusätzlich zum Animations-Sound).
+- `frontend/assets/audio/results/{win,jackpot,lose}/` - Ergebnis-Sounds
+  (beliebig viele pro Ordner, siehe Sound-Pools unten).
 - `frontend/assets/audio/music/music_main.mp3` - Hintergrundmusik (Loop).
 
 ## Audio-Ordnerstruktur
@@ -146,7 +146,10 @@ Musik in `MUSIC_TRACKS`) und in `event_media_map.json` per Name verwendet.
 ```
 frontend/assets/audio/
 ├── game/                  Spielmechanik: Hebel, Spin-Rattern, Walzen-Stopp
-├── results/               Ergebnis-Jingles (win_small, win_jackpot, lose)
+├── results/               Sound-Pools pro Ergebnis
+│   ├── win/
+│   ├── jackpot/
+│   └── lose/
 ├── music/                 Hintergrundmusik
 └── animations/            Tonspuren zu den Overlay-Animationen
     ├── win/
@@ -155,9 +158,16 @@ frontend/assets/audio/
     └── multiplier/        Case-Opening, Sniper-Schuss
 ```
 
+**Sound-Pools:** Jeder Unterordner von `results/` ist ein Pool. Einfach
+`.mp3`/`.ogg`/`.wav`-Dateien hineinlegen - kein Code-Eintrag nötig, das
+Backend listet sie über `/audio/pools`, und pro Ergebnis wird zufällig eine
+Datei gespielt, zusätzlich zum Ton der gewählten Animation. Neue Pools
+(neuer Ordner) werden in `event_media_map.json` per `{ "pool": "<ordner>" }`
+verwendet.
+
 In `event_media_map.json` kann `"sound"` an einer Animation ein einzelner
 Name oder ein Array von Layern sein (`{ "name", "delay_ms", "volume" }`,
-`{ "pick": [...] }` für Zufallsauswahl). `"sounds"` auf Event-Ebene spielt
+`{ "pick": [...] }` für Zufallsauswahl, `{ "pool": "win" }` für einen Pool). `"sounds"` auf Event-Ebene spielt
 bei jeder Variante zusätzlich, `"duck_music"` (0-1) senkt währenddessen die
 Hintergrundmusik ab. Beispiel: `sound_layer_demo`.
 

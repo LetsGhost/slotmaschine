@@ -1,6 +1,6 @@
 {
   "win_small": {
-    "sounds": ["win_small"],
+    "sounds": { "pool": "win" },
     "duck_music": 0.3,
     "anim_pool": [
       {
@@ -29,7 +29,7 @@
   },
 
   "win_jackpot": {
-    "sounds": ["win_jackpot"],
+    "sounds": { "pool": "jackpot" },
     "duck_music": 0.2,
     "anim_pool": [
       {
@@ -55,6 +55,7 @@
   },
 
   "lose": {
+    "sounds": { "pool": "lose" },
     "duck_music": 0.3,
     "anim_pool": [
       {
