@@ -23,14 +23,6 @@ body {
 /* Außerhalb des Debug-Modus füllt die Stage den gesamten Viewport: Sie bleibt
    intern 800x480 (alle Positionen in px), wird aber per transform uniform auf
    die Viewportgröße skaliert (--stage-scale setzt main.js) und zentriert. */
-/* Im Kiosk-Betrieb (kein Debug-Modus) den Mauszeiger ausblenden. Unter cage
-   (Wayland) gibt es kein unclutter - der Compositor zeigt einfach den Cursor,
-   den Chromium anfordert, daher muss das hier im CSS passieren. */
-body:not(.debug-mode),
-body:not(.debug-mode) * {
-  cursor: none !important;
-}
-
 body:not(.debug-mode) #stage {
   position: absolute;
   top: 50%;
