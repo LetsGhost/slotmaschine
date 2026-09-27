@@ -136,7 +136,6 @@ wenn alle Assets schneller fertig geladen sind. Danach blendet er sanft aus.
 - `frontend/assets/audio/game/lever.mp3` - Hebel-Sound.
 - `frontend/assets/audio/results/{win,jackpot,lose}/` - Ergebnis-Sounds
   (beliebig viele pro Ordner, siehe Sound-Pools unten).
-- `frontend/assets/audio/music/music_main.mp3` - Hintergrundmusik (Loop).
 
 ## Audio-Ordnerstruktur
 
@@ -150,7 +149,8 @@ frontend/assets/audio/
 │   ├── win/
 │   ├── jackpot/
 │   └── lose/
-├── music/                 Hintergrundmusik
+├── music/                 Hintergrundmusik (OGG; in sound.js unter
+│                          MUSIC_TRACKS eintragen, Start-Track = DEFAULT_MUSIC)
 └── animations/            Tonspuren zu den Overlay-Animationen
     ├── win/
     ├── jackpot/

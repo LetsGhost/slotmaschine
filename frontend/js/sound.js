@@ -51,17 +51,21 @@ const LOOP_REGIONS = {
 
 // Hintergrundmusik: wird per <audio>-Element gestreamt statt komplett dekodiert
 // (spart auf dem Pi RAM) und über Web Audio in den Musik-Bus geleitet.
+// Originale (WAV) liegen in assets_originals/audio/music; hier als OGG, weil
+// das kleiner ist und lückenloser loopt als MP3.
 const MUSIC_TRACKS = {
-  main: "assets/audio/music/music_main.mp3",
+  merkur_loop: "assets/audio/music/merkur_loop.ogg",
+  scooter: "assets/audio/music/scooter_move_your_ass.ogg",
 };
 
 // Lautstärke (0-1) pro Musiktrack.
 const MUSIC_VOLUMES = {
-  main: 0.4,
+  merkur_loop: 0.4,
+  scooter: 0.4,
 };
 
 // Track, der nach preloadSounds() automatisch startet (null = keine Musik).
-const DEFAULT_MUSIC = "main";
+const DEFAULT_MUSIC = "merkur_loop";
 
 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContextClass();
