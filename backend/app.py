@@ -18,6 +18,9 @@ app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 account_manager = AccountManager()
+# VORÜBERGEHEND: Default-Profil ohne Karte (siehe config.DEFAULT_PROFILE_UID).
+if config.DEFAULT_PROFILE_UID:
+    account_manager.activate_default_profile(config.DEFAULT_PROFILE_UID, config.DEFAULT_PROFILE_CREDITS)
 
 
 def emit_event(event: str, payload: dict) -> None:

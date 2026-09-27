@@ -60,3 +60,12 @@ NFC_TOPUP_AMOUNT = 100
 NFC_DEBOUNCE_SEC = 1.5
 NFC_POLL_INTERVAL_SEC = 0.2
 NFC_READ_TIMEOUT_SEC = 0.5
+
+# VORÜBERGEHEND: Beim Serverstart wird dieses Profil automatisch aktiv, damit
+# ohne Karte gespielt werden kann. Wird beim ersten Start mit
+# DEFAULT_PROFILE_CREDITS angelegt, danach bleibt das Guthaben in accounts.json
+# erhalten. Echte Karten auflegen funktioniert weiterhin (Login wechselt weg).
+# Zum Entfernen auf None setzen (oder Aufruf activate_default_profile in app.py
+# + Methode in accounts.py löschen).
+DEFAULT_PROFILE_UID = "DEFAULT"
+DEFAULT_PROFILE_CREDITS = 1000
