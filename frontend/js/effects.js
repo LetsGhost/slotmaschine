@@ -1,5 +1,5 @@
 import { DISPLAY } from "./config.js";
-import { playSound } from "./sound.js";
+import { playSound, playSoundSpec, duckMusic, unduckMusic } from "./sound.js";
 
 const layer = document.getElementById("overlay-layer");
 
@@ -21,6 +21,12 @@ function trackAnimation(eventName, animation) {
 function trackSound(eventName, source) {
   if (source) getController(eventName).sounds.add(source);
   return source;
+}
+
+// Spielt eine Sound-Angabe (String, Objekt, {pick}, Array - siehe
+// playSoundSpec in sound.js) ab und hängt alle Sources an das Event.
+function playTrackedSounds(eventName, spec) {
+  playSoundSpec(spec).forEach((source) => trackSound(eventName, source));
 }
 
 function getController(eventName) {
@@ -173,15 +179,35 @@ function pickVariant(eventName) {
 // braucht, um sich an den konkreten Anlass anzupassen - z.B. übergibt
 // showEventSequence hier den getroffenen Multiplikator-Wert, damit "anim":
 // "sniper_count" weiß, wie oft geschossen werden soll (siehe runSniperCount).
-export function showEvent(eventName, { onComplete, context } = {}) {
+//
+// Sound-Felder:
+// - "sound" am Eintrag (bzw. an der Pool-Variante): String oder Layer-Angabe
+//   (siehe playSoundSpec in sound.js). Startet bei Videos erst, wenn das Video
+//   wirklich läuft; "delay_ms" in Layern zählt ab diesem Zeitpunkt.
+// - "sounds" auf Event-Ebene (neben "anim_pool"): spielt bei jeder Variante
+//   zusätzlich, sofort beim Anzeigen des Events.
+// - "duck_music" (Event-Ebene oder Variante, 0-1): senkt die Hintergrundmusik
+//   auf diesen Pegel, bis das Event fertig ist oder entfernt wird.
+export function showEvent(eventName, { onComplete: onDone, context } = {}) {
   const entry = pickVariant(eventName);
   if (!entry) {
     console.warn(`Kein Event-Media-Mapping für "${eventName}"`);
-    onComplete?.();
+    onDone?.();
     return;
   }
 
   clearEvent(eventName);
+
+  const raw = mediaMap[eventName];
+  const eventConfig = raw && !Array.isArray(raw) && raw.anim_pool ? raw : {};
+  const duckLevel = entry.duck_music ?? eventConfig.duck_music;
+  if (duckLevel != null) duckMusic(eventName, duckLevel);
+  if (eventConfig.sounds) playTrackedSounds(eventName, eventConfig.sounds);
+
+  const onComplete = () => {
+    unduckMusic(eventName);
+    onDone?.();
+  };
 
   const pos = entry.position || { top: 0, left: 0, width: 800, height: 480 };
   let el;
@@ -196,7 +222,7 @@ export function showEvent(eventName, { onComplete, context } = {}) {
     // das Video wirklich abspielt - auf dem Pi dauert der Decoder-Start sonst
     // hörbar länger als der Sound.
     if (entry.sound) {
-      el.addEventListener("playing", () => trackSound(eventName, playSound(entry.sound)), { once: true });
+      el.addEventListener("playing", () => playTrackedSounds(eventName, entry.sound), { once: true });
     }
     // Mit "anim" steuert die Animation selbst das Ende (z.B. "case_open":
     // der Clip bleibt nach "ended" auf dem letzten Frame stehen).
@@ -209,7 +235,7 @@ export function showEvent(eventName, { onComplete, context } = {}) {
   } else {
     el = document.createElement("img");
     el.src = entry.src;
-    if (entry.sound) trackSound(eventName, playSound(entry.sound));
+    if (entry.sound) playTrackedSounds(eventName, entry.sound);
   }
 
   el.dataset.event = eventName;
@@ -1059,6 +1085,7 @@ export function clearEvent(eventName) {
     controller.sounds.forEach((source) => source.stop());
     activeControllers.delete(eventName);
   }
+  unduckMusic(eventName);
   layer.querySelectorAll(`[data-event="${eventName}"]`).forEach((el) => el.remove());
 }
 

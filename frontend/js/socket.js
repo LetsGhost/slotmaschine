@@ -30,13 +30,8 @@ function revealPendingPayout() {
   pendingPayout = null;
   winEl.textContent = data?.amount ?? 0;
   if (!data || data.amount <= 0) return;
-  if (data.amount >= JACKPOT_THRESHOLD) {
-    showEvent("win_jackpot");
-    playSound("win_jackpot");
-  } else {
-    showEvent("win_small");
-    playSound("win_small");
-  }
+  // Gewinn-Sounds kommen aus event_media_map.json ("sounds" am Event).
+  showEvent(data.amount >= JACKPOT_THRESHOLD ? "win_jackpot" : "win_small");
 }
 
 function resetIdleTimer() {

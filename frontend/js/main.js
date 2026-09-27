@@ -1,7 +1,7 @@
 import { init as initReels } from "./reels.js";
 import { loadEventMediaMap, showEvent, getEventNames, isPoolEvent } from "./effects.js";
 import { loadMultiplierConfig } from "./multipliers.js";
-import { preloadSounds } from "./sound.js";
+import { preloadSounds, startBackgroundMusic } from "./sound.js";
 import { DISPLAY } from "./config.js";
 import "./socket.js";
 
@@ -124,6 +124,7 @@ async function bootstrap() {
     await wait(remaining);
   }
   hideLoadingScreen();
+  startBackgroundMusic();
 }
 
 bootstrap();

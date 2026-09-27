@@ -1,5 +1,7 @@
 {
   "win_small": {
+    "sounds": ["win_small"],
+    "duck_music": 0.3,
     "anim_pool": [
       {
         "type": "video",
@@ -27,6 +29,8 @@
   },
 
   "win_jackpot": {
+    "sounds": ["win_jackpot"],
+    "duck_music": 0.2,
     "anim_pool": [
       {
         "type": "image",
@@ -51,6 +55,7 @@
   },
 
   "lose": {
+    "duck_music": 0.3,
     "anim_pool": [
       {
         "type": "image",
@@ -116,6 +121,7 @@
   },
 
   "multiplier_hit": {
+    "duck_music": 0.5,
     "anim_pool": [
       {
         "type": "gif",
@@ -270,6 +276,27 @@
     "hold_ms": 3200,
     "fly_out_ms": 400,
     "position": { "top": 0, "left": 148, "width": 504, "height": 480 }
+  },
+
+  "sound_layer_demo": {
+    "sounds": [{ "name": "reel_stop", "delay_ms": 0 }],
+    "anim_pool": [
+      {
+        "type": "image",
+        "src": "assets/overlays/sybau_domi.png",
+        "sound": [
+          "sybau",
+          { "name": "gunshot", "delay_ms": 500 },
+          { "name": "gunshot", "delay_ms": 1500, "volume": 0.5 },
+          { "pick": ["reel_stop", "gunshot"], "delay_ms": 2500 }
+        ],
+        "anim": "flyby",
+        "fly_in_ms": 500,
+        "hold_ms": 1800,
+        "fly_out_ms": 500,
+        "position": { "top": 115, "left": 275, "width": 250, "height": 250 }
+      }
+    ]
   },
 
   "bouncing_yaris_demo": {

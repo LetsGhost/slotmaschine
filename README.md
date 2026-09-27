@@ -133,8 +133,33 @@ wenn alle Assets schneller fertig geladen sind. Danach blendet er sanft aus.
 - `frontend/assets/overlays/` - `win_small.webm`, `win_jackpot.webm`,
   `lose.gif`, `idle_attract.gif`, `lever_flash.png` (siehe
   `event_media_map.json`, dort auch beliebig erweiterbar).
-- `frontend/assets/audio/` - `lever.mp3`, `reel_stop.mp3`, `win_small.mp3`,
-  `win_jackpot.mp3`, `lose.mp3`.
+- `frontend/assets/audio/game/lever.mp3` - Hebel-Sound.
+- `frontend/assets/audio/results/` - `win_small.mp3`, `win_jackpot.mp3`,
+  `lose.mp3` (Ergebnis-Jingles, laufen zusätzlich zum Animations-Sound).
+- `frontend/assets/audio/music/music_main.mp3` - Hintergrundmusik (Loop).
+
+## Audio-Ordnerstruktur
+
+Alle Sounds werden in `frontend/js/sound.js` registriert (`SOUND_FILES`,
+Musik in `MUSIC_TRACKS`) und in `event_media_map.json` per Name verwendet.
+
+```
+frontend/assets/audio/
+├── game/                  Spielmechanik: Hebel, Spin-Rattern, Walzen-Stopp
+├── results/               Ergebnis-Jingles (win_small, win_jackpot, lose)
+├── music/                 Hintergrundmusik
+└── animations/            Tonspuren zu den Overlay-Animationen
+    ├── win/
+    ├── jackpot/
+    ├── lose/
+    └── multiplier/        Case-Opening, Sniper-Schuss
+```
+
+In `event_media_map.json` kann `"sound"` an einer Animation ein einzelner
+Name oder ein Array von Layern sein (`{ "name", "delay_ms", "volume" }`,
+`{ "pick": [...] }` für Zufallsauswahl). `"sounds"` auf Event-Ebene spielt
+bei jeder Variante zusätzlich, `"duck_music"` (0-1) senkt währenddessen die
+Hintergrundmusik ab. Beispiel: `sound_layer_demo`.
 
 ## Greenscreen-Videos zu transparenten GIFs konvertieren
 
