@@ -54,6 +54,15 @@ Die Bildschirm-Drehung steuert `SLOT_ROTATION` (`normal`, `90`, `180`,
 `270`; Standard `90`, im Service als `Environment=` gesetzt, braucht
 `sudo apt install wlr-randr`).
 
+**Touch-Fix (DSI-Display):** Der Goodix-Touch-Chip des Displays ist beim
+Booten oft noch nicht bereit (`dmesg`: `Goodix-TS 10-005d: I2C communication
+failure: -5`) - dann reagiert der Bildschirm nicht auf Tippen, obwohl das Bild
+läuft. `deploy/slotmachine-touch.service` (ruft `deploy/touch-rebind.sh` auf)
+bindet den Treiber beim Booten automatisch neu. Installation zusammen mit dem
+Kiosk-Service per `./deploy/update-service.sh`. Manuell:
+`echo 10-005d | sudo tee /sys/bus/i2c/drivers/Goodix-TS/bind`.
+Logs: `journalctl -u slotmachine-touch.service`.
+
 Unter Windows (PowerShell) wird die Variable so gesetzt:
 
 ```powershell

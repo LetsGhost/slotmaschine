@@ -33,6 +33,25 @@ class GameState:
         # Karte, die den laufenden Spin bezahlt hat - bekommt auch den Gewinn,
         # selbst wenn während des Spins eine andere Karte aufgelegt wird.
         self._spin_uid: str | None = None
+        self._bet_index = 0
+        self._spin_bet = config.SPIN_COST
+
+    def current_bet(self) -> int:
+        step = config.BET_STEPS[self._bet_index]
+        if step == "all":
+            return self.accounts.get_active_credits() or 0
+        return step
+
+    def bet_label(self) -> str | int:
+        step = config.BET_STEPS[self._bet_index]
+        return "ALLES" if step == "all" else step
+
+    def cycle_bet(self) -> None:
+        # Während eines Spins bleibt der Einsatz fix.
+        if self.state != State.IDLE:
+            return
+        self._bet_index = (self._bet_index + 1) % len(config.BET_STEPS)
+        self.emit("credits_update", {"bet": self.bet_label()})
 
     def pull_lever(self) -> None:
         if self.state != State.IDLE:
@@ -41,11 +60,13 @@ class GameState:
         if uid is None:
             self.emit("error", {"message": "Keine aktive Karte - bitte Karte auflegen"})
             return
-        if not self.accounts.deduct(uid, config.SPIN_COST):
+        bet = self.current_bet()
+        if bet <= 0 or not self.accounts.deduct(uid, bet):
             self.emit("error", {"message": "Keine Credits mehr - Karte erneut auflegen zum Aufladen"})
             return
 
         self._spin_uid = uid
+        self._spin_bet = bet
         self._emit_credits(uid)
 
         self._set_state(State.SPINNING)
@@ -60,6 +81,8 @@ class GameState:
     def _on_spin_complete(self) -> None:
         self._set_state(State.EVALUATING)
         winning_lines = evaluate_lines(self._pending_result, self._pending_multipliers)
+        for line in winning_lines:
+            line["win"] = round(line["win"] * self._spin_bet / config.SPIN_COST)
         win = sum(line["win"] for line in winning_lines)
         self.emit(
             "spin_result",
@@ -85,7 +108,7 @@ class GameState:
         # Anzeige zeigt immer die aktive Karte - wurde während des Spins
         # gewechselt, nicht mit dem Guthaben der alten Karte überschreiben.
         if uid == self.accounts.active_uid:
-            self.emit("credits_update", {"credits": self.accounts.balance(uid), "uid": uid})
+            self.emit("credits_update", {"credits": self.accounts.balance(uid), "uid": uid, "bet": self.bet_label()})
 
     def _set_state(self, new_state: State) -> None:
         self.state = new_state

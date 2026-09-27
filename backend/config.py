@@ -29,7 +29,11 @@ PAYLINES = [
 ]
 
 SPIN_DURATION_MS = [1200, 1500, 1800, 2100, 2400]  # pro Spalte, damit sie nacheinander stoppen
-SPIN_COST = 10
+SPIN_COST = 10  # Grundeinsatz - die Gewinne in PAYOUTS gelten für diesen Einsatz
+# Einsatzstufen, durchgeschaltet per Tipp auf das EINSATZ-Feld (nach der
+# letzten wieder von vorn). "all" = gesamtes Guthaben der aktiven Karte.
+# Gewinne skalieren mit Einsatz / SPIN_COST.
+BET_STEPS = [10, 20, 50, 100, 200, 300, 500, "all"]
 
 # Balancing für das Multiplikator-Feature (Chance/Werte/Gewichte/Kombinationslogik)
 # liegt in dieser JSON-Datei statt hier in Python, damit es sich ohne Codeänderung

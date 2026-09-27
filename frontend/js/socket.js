@@ -97,7 +97,7 @@ socket.on("payout", (data) => {
 
 // credits === null heißt: keine Karte aktiv (z.B. nach Server-Neustart).
 socket.on("credits_update", (data) => {
-  creditsEl.textContent = data.credits ?? "—";
+  if ("credits" in data) creditsEl.textContent = data.credits ?? "—";
   if (data.bet != null) betEl.textContent = data.bet;
   if (debugCardEl && "uid" in data) debugCardEl.textContent = data.uid ?? "keine";
 });
@@ -178,6 +178,14 @@ document.addEventListener("keydown", (e) => {
 // config.TAP_TO_SPIN in backend/config.py).
 document.getElementById("stage")?.addEventListener("pointerdown", () => {
   pullLever("tap_pull_lever");
+});
+
+// Tipp auf das EINSATZ-Feld schaltet zur nächsten Einsatzstufe
+// (config.BET_STEPS) - ohne dabei den Tap-to-Spin der Stage auszulösen.
+document.getElementById("bet-plate")?.addEventListener("pointerdown", (e) => {
+  e.stopPropagation();
+  resetIdleTimer();
+  socket.emit("cycle_bet");
 });
 
 document.getElementById("debug-add-credits")?.addEventListener("click", () => {

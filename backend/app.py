@@ -38,7 +38,7 @@ NFC_EVENTS = {
 def emit_credits() -> None:
     socketio.emit(
         "credits_update",
-        {"credits": account_manager.get_active_credits(), "uid": account_manager.active_uid, "bet": config.SPIN_COST},
+        {"credits": account_manager.get_active_credits(), "uid": account_manager.active_uid, "bet": game.bet_label()},
     )
 
 
@@ -127,6 +127,11 @@ def handle_debug_pull_lever():
 def handle_tap_pull_lever():
     if config.TAP_TO_SPIN:
         game.pull_lever()
+
+
+@socketio.on("cycle_bet")
+def handle_cycle_bet():
+    game.cycle_bet()
 
 
 @socketio.on("debug_add_credits")

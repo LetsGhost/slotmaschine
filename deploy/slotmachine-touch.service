@@ -1,0 +1,22 @@
+# systemd-Service: bindet beim Booten den Goodix-Touch-Treiber des
+# DSI-Displays neu, falls der erste Versuch fehlgeschlagen ist (siehe
+# deploy/touch-rebind.sh). Chromium/cage erkennen das Touch-Gerät auch, wenn es
+# erst nach dem Kiosk-Start auftaucht - daher keine feste Reihenfolge nötig.
+#
+# Installation (Pfad unten ggf. anpassen) - oder einfach
+# ./deploy/update-service.sh ausführen, das installiert beide Services:
+#   sudo cp deploy/slotmachine-touch.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now slotmachine-touch.service
+# Logs: journalctl -u slotmachine-touch.service
+
+[Unit]
+Description=Slotmaschine Touch-Fix (Goodix-Treiber neu binden)
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/admin/slotmaschine/deploy/touch-rebind.sh
+
+[Install]
+WantedBy=multi-user.target
