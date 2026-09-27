@@ -62,7 +62,12 @@ BROWSER_FLAGS=(
 )
 
 if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
-  # Es läuft bereits eine grafische Oberfläche (Desktop-Image oder PC)
+  # Es läuft bereits eine grafische Oberfläche (Desktop-Image oder PC).
+  # Unter X11 den Mauszeiger zusätzlich per unclutter ausblenden (optional,
+  # sudo apt install unclutter); unter Wayland übernimmt das das CSS.
+  if [ "$SLOT_DEBUG" = "0" ] && [ -n "${DISPLAY:-}" ] && command -v unclutter >/dev/null 2>&1; then
+    unclutter -idle 0 -root &
+  fi
   "$BROWSER" "${BROWSER_FLAGS[@]}" "$URL"
 elif command -v cage >/dev/null 2>&1; then
   # Pi OS Lite ohne Desktop: Chromium im Wayland-Kiosk-Compositor cage starten.
