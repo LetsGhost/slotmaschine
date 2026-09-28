@@ -46,7 +46,7 @@ const DEBUG_EVENT_CATEGORIES = [
   { title: "Gewinn", events: ["mlg_meme_demo", "sybau_flyby_demo", "bouncing_yaris_demo", "jojo_fade_demo"] },
   { title: "Jackpot", events: ["gojo_float_demo", "coin_rain_reveal_demo", "monte_dance_demo"] },
   { title: "Verlust", events: ["cursed_plankton_demo", "why_so_serious_demo", "chest_reveal_demo"] },
-  { title: "Multiplikator", events: ["sniper_count_demo", "case_open_demo"] },
+  { title: "Multiplikator", events: ["sniper_count_demo", "case_open_demo", "basti_sieben_demo"] },
   { title: "Spin", events: ["sausage_knife_demo"] },
   {
     title: "Einblend-Animationen",

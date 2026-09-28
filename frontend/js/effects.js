@@ -40,6 +40,9 @@ function getController(eventName) {
 
 let mediaMap = {};
 
+// Musikpegel (0-1) während Events mit Sound, die kein eigenes duck_music haben.
+const DEFAULT_DUCK_LEVEL = 0.3;
+
 // Wiederverwendbare Animationstypen für event_media_map.json (Feld "anim").
 // Timing per Event überschreibbar über fly_in_ms / hold_ms / fly_out_ms.
 // "flyby" ist eine eigene Mehrphasen-Sequenz (siehe runFlybySpin) und daher hier nicht gelistet.
@@ -156,9 +159,14 @@ export function isPoolEvent(eventName) {
   return pool !== null && pool.length > 1;
 }
 
-function pickVariant(eventName) {
-  const raw = getPool(eventName);
+// Varianten mit "only_values": [..] kommen nur in Frage, wenn context.value
+// darin enthalten ist - und haben dann Vorrang vor allen anderen Varianten
+// (z.B. eigene Animation für einen x7-Multiplikator).
+function pickVariant(eventName, context) {
+  let raw = getPool(eventName);
   if (!raw) return mediaMap[eventName];
+  const matching = raw.filter((v) => v.only_values?.includes(context?.value));
+  raw = matching.length > 0 ? matching : raw.filter((v) => !v.only_values);
   if (raw.length === 0) return undefined;
   const total = raw.reduce((sum, v) => sum + (v.weight ?? 1), 0);
   let roll = Math.random() * total;
@@ -189,7 +197,7 @@ function pickVariant(eventName) {
 // - "duck_music" (Event-Ebene oder Variante, 0-1): senkt die Hintergrundmusik
 //   auf diesen Pegel, bis das Event fertig ist oder entfernt wird.
 export function showEvent(eventName, { onComplete: onDone, context } = {}) {
-  const entry = pickVariant(eventName);
+  const entry = pickVariant(eventName, context);
   if (!entry) {
     console.warn(`Kein Event-Media-Mapping für "${eventName}"`);
     onDone?.();
@@ -200,7 +208,10 @@ export function showEvent(eventName, { onComplete: onDone, context } = {}) {
 
   const raw = mediaMap[eventName];
   const eventConfig = raw && !Array.isArray(raw) && raw.anim_pool ? raw : {};
-  const duckLevel = entry.duck_music ?? eventConfig.duck_music;
+  // Ohne eigenes duck_music wird die Musik trotzdem abgesenkt, sobald das
+  // Event einen Sound mitbringt - sonst übertönt sie z.B. die Demo-Events.
+  const hasSound = entry.sound != null || eventConfig.sounds != null;
+  const duckLevel = entry.duck_music ?? eventConfig.duck_music ?? (hasSound ? DEFAULT_DUCK_LEVEL : null);
   if (duckLevel != null) duckMusic(eventName, duckLevel);
   if (eventConfig.sounds) playTrackedSounds(eventName, eventConfig.sounds);
 
@@ -232,6 +243,22 @@ export function showEvent(eventName, { onComplete: onDone, context } = {}) {
         onComplete?.();
       });
     }
+  } else if (entry.type === "text") {
+    // Reiner Text statt Bild: "text", optional font_size_px, color, glow_color.
+    el = document.createElement("div");
+    el.textContent = entry.text ?? "";
+    el.style.display = "flex";
+    el.style.alignItems = "center";
+    el.style.justifyContent = "center";
+    el.style.fontFamily = '"Segoe UI", Arial, sans-serif';
+    el.style.fontWeight = "900";
+    el.style.fontSize = `${entry.font_size_px ?? 200}px`;
+    el.style.lineHeight = "1";
+    el.style.color = entry.color ?? "#fff";
+    if (entry.glow_color) {
+      el.style.textShadow = `0 0 20px ${entry.glow_color}, 0 0 40px ${entry.glow_color}, 0 6px 8px rgba(0,0,0,0.7)`;
+    }
+    if (entry.sound) playTrackedSounds(eventName, entry.sound);
   } else {
     el = document.createElement("img");
     el.src = entry.src;

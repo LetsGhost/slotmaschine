@@ -29,6 +29,10 @@ const SOUND_FILES = {
   jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.wav",
   // ~13.8s, so lang wie die "fade"-Einblendung von montanablack.gif.
   monte_dance: "assets/audio/animations/jackpot/success_monte_dance.wav",
+  // ~4.3s, so lang wie die rote Sieben der x7-Multiplikator-Animation.
+  basti_sieben: "assets/audio/animations/multiplier/success_basti-sieben.wav",
+  // ~2.07s, laute Phase 1.1-1.8s = Reveal der "chest_reveal"-Animation.
+  fart_2: "assets/audio/animations/lose/fail_fart_2.wav",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
@@ -68,8 +72,9 @@ const MUSIC_VOLUMES = {
   scooter: 0.4,
 };
 
-// Track, der nach preloadSounds() automatisch startet (null = keine Musik).
-const DEFAULT_MUSIC = "merkur_loop";
+// Hintergrund-Playlist nach dem Ladebildschirm: Tracks laufen nacheinander
+// und fangen danach wieder vorne an (leer = keine Musik).
+const BACKGROUND_PLAYLIST = ["merkur_loop", "scooter"];
 
 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContextClass();
@@ -289,8 +294,9 @@ function disposeTrack(track, fadeMs) {
 }
 
 // Startet einen Track aus MUSIC_TRACKS in Endlosschleife und blendet einen
-// eventuell laufenden anderen Track dabei aus (Crossfade).
-export function playMusic(name, { fadeMs = 1500 } = {}) {
+// eventuell laufenden anderen Track dabei aus (Crossfade). Mit onEnded läuft
+// der Track nur einmal durch und ruft danach onEnded auf (für die Playlist).
+export function playMusic(name, { fadeMs = 1500, onEnded = null } = {}) {
   if (currentMusic?.name === name) return;
   const url = MUSIC_TRACKS[name];
   if (!url) {
@@ -300,7 +306,13 @@ export function playMusic(name, { fadeMs = 1500 } = {}) {
   resumeContext();
 
   const el = new Audio(url);
-  el.loop = true;
+  el.loop = !onEnded;
+  if (onEnded) {
+    el.addEventListener("ended", () => {
+      // Nur reagieren, wenn der Track nicht inzwischen ersetzt/gestoppt wurde.
+      if (currentMusic?.el === el) onEnded();
+    });
+  }
   el.addEventListener("error", () =>
     console.warn(`Musik "${name}" konnte nicht geladen werden (Asset fehlt?): ${url}`)
   );
@@ -321,9 +333,17 @@ export function stopMusic(fadeMs = 1000) {
   currentMusic = null;
 }
 
-// Startet DEFAULT_MUSIC (falls gesetzt) - wird nach dem Ladebildschirm aufgerufen.
+// Startet BACKGROUND_PLAYLIST - wird nach dem Ladebildschirm aufgerufen.
 export function startBackgroundMusic() {
-  if (DEFAULT_MUSIC) playMusic(DEFAULT_MUSIC);
+  if (BACKGROUND_PLAYLIST.length === 0) return;
+  const playAt = (index, fadeMs) => {
+    const name = BACKGROUND_PLAYLIST[index % BACKGROUND_PLAYLIST.length];
+    // Bei nur einem Track wäre currentMusic.name gleich - playMusic würde
+    // dann nichts tun, also vorher freigeben.
+    if (currentMusic?.name === name) stopMusic(0);
+    playMusic(name, { fadeMs, onEnded: () => playAt(index + 1, 300) });
+  };
+  playAt(0, 1500);
 }
 
 // Ducking: senkt die Musik ab, solange mindestens eine Anfrage aktiv ist.
