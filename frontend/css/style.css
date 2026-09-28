@@ -1,3 +1,6 @@
+/* Mauszeiger im Kiosk ausblenden (Touch und Klicks funktionieren weiter) */
+* { cursor: none !important; }
+
 * {
   box-sizing: border-box;
 }
