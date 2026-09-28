@@ -280,6 +280,11 @@ export function showEvent(eventName, { onComplete: onDone, context } = {}) {
     return;
   }
 
+  if (entry.anim === "party") {
+    runParty(eventName, el, entry, onComplete);
+    return;
+  }
+
   if (entry.anim === "coin_rain_reveal") {
     runCoinRainReveal(eventName, el, entry, onComplete);
     return;
@@ -867,6 +872,166 @@ function runCaseOpen(eventName, camEl, entry, onComplete, context) {
       }, snapMs)
     );
   };
+}
+
+// "party": Disco-Einblendung. Der ganze Bildschirm flackert in wechselnden
+// Farben, zwei Scheinwerfer aus den unteren Ecken schwenken abwechselnd mit
+// buntem Licht über die Stage, das Bild in der Mitte pulsiert im Takt.
+// Felder (alle optional): duration_ms (Gesamtdauer inkl. Ein-/Ausblenden),
+// fade_in_ms, fade_out_ms, beat_ms (Takt: Scheinwerfer-Wechsel und Puls),
+// flicker_ms (Dauer einer Flacker-Farbe), flicker_opacity (Stärke des
+// Flackerns, 0-1), colors (Farbliste für Flackern und Scheinwerfer).
+const PARTY_COLORS = ["#ff0040", "#00e5ff", "#ffea00", "#00ff6a", "#ff00ea", "#ff7b00", "#3d5afe"];
+
+// Keyframes mit harten Farbwechseln (kein Überblenden) für eine CSS-Eigenschaft.
+function hardCutKeyframes(prop, values) {
+  const frames = [];
+  values.forEach((value, i) => {
+    frames.push({ [prop]: value, offset: i / values.length });
+    frames.push({ [prop]: value, offset: (i + 1) / values.length - 0.0001 });
+  });
+  frames[frames.length - 1].offset = 1;
+  return frames;
+}
+
+function shuffled(list) {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function runParty(eventName, el, entry, onComplete) {
+  const durationMs = entry.duration_ms ?? 4000;
+  const fadeInMs = entry.fade_in_ms ?? 300;
+  const fadeOutMs = entry.fade_out_ms ?? 400;
+  const beatMs = entry.beat_ms ?? 500;
+  const flickerMs = entry.flicker_ms ?? 120;
+  const flickerOpacity = entry.flicker_opacity ?? 0.35;
+  const colors = entry.colors ?? PARTY_COLORS;
+  const { width: W, height: H } = DISPLAY;
+  const parts = [];
+
+  // Bunt flackernder Bildschirm hinter dem Bild.
+  const flicker = document.createElement("div");
+  flicker.dataset.event = eventName;
+  flicker.style.cssText = `position:absolute;left:0;top:0;width:${W}px;height:${H}px;pointer-events:none;opacity:0`;
+  layer.insertBefore(flicker, el);
+  parts.push({ node: flicker, opacity: flickerOpacity });
+  trackAnimation(
+    eventName,
+    flicker.animate(hardCutKeyframes("backgroundColor", shuffled(colors)), {
+      duration: flickerMs * colors.length,
+      iterations: Infinity,
+    })
+  );
+
+  // Zwei Scheinwerfer: Lichtkegel mit Spitze in der unteren Ecke, schwenken
+  // hin und her und leuchten abwechselnd (links auf dem Beat, rechts dazwischen).
+  const coneW = W * 0.7;
+  const coneH = H * 1.6;
+  [
+    { x: W * 0.08, from: 15, to: 50, phase: 0 },
+    { x: W * 0.92, from: -15, to: -50, phase: 1 },
+  ].forEach(({ x, from, to, phase }) => {
+    const cone = document.createElement("div");
+    cone.dataset.event = eventName;
+    cone.style.cssText =
+      `position:absolute;pointer-events:none;opacity:0;mix-blend-mode:screen;` +
+      `width:${coneW}px;height:${coneH}px;left:${x - coneW / 2}px;top:${H + 20 - coneH}px;` +
+      `transform-origin:50% 100%;clip-path:polygon(50% 100%, 0% 0%, 100% 0%);filter:blur(6px)`;
+    layer.appendChild(cone);
+    parts.push({ node: cone, opacity: 1 });
+
+    const coneColors = shuffled(colors).map(
+      (c) => `linear-gradient(to top, ${c} 0%, ${c}cc 35%, ${c}00 100%)`
+    );
+    trackAnimation(
+      eventName,
+      cone.animate(hardCutKeyframes("backgroundImage", coneColors), {
+        duration: beatMs * 2 * coneColors.length,
+        iterations: Infinity,
+      })
+    );
+    trackAnimation(
+      eventName,
+      cone.animate(
+        [{ transform: `rotate(${from}deg)` }, { transform: `rotate(${to}deg)` }],
+        { duration: beatMs * 2, iterations: Infinity, direction: "alternate", easing: "ease-in-out", delay: -phase * beatMs }
+      )
+    );
+    // An/Aus im Wechsel: sichtbar in der eigenen Takthälfte, sonst gedimmt.
+    trackAnimation(
+      eventName,
+      cone.animate(hardCutKeyframes("filter", ["blur(6px) brightness(1)", "blur(6px) brightness(0.15)"]), {
+        duration: beatMs * 2,
+        iterations: Infinity,
+        delay: -phase * beatMs,
+      })
+    );
+  });
+
+  // Container-Elemente (Flackern + Kegel) einblenden.
+  parts.forEach(({ node, opacity }) => {
+    trackAnimation(
+      eventName,
+      node.animate([{ opacity: 0 }, { opacity }], { duration: fadeInMs, fill: "forwards" })
+    );
+  });
+
+  // Bild: scheint mit Aufblitzen auf und pulsiert dann im Takt.
+  trackAnimation(
+    eventName,
+    el.animate(
+      [
+        { opacity: 0, transform: "scale(0.6)", filter: "brightness(3)" },
+        { opacity: 1, transform: "scale(1.08)", filter: "brightness(1.8)", offset: 0.6 },
+        { opacity: 1, transform: "scale(1)", filter: "brightness(1)" },
+      ],
+      { duration: fadeInMs + 200, easing: "ease-out", fill: "forwards" }
+    )
+  );
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      trackAnimation(
+        eventName,
+        el.animate(
+          [
+            { transform: "scale(1.07)", filter: "brightness(1.5)" },
+            { transform: "scale(1)", filter: "brightness(1)", offset: 0.4 },
+            { transform: "scale(1)", filter: "brightness(1)" },
+          ],
+          { duration: beatMs, iterations: Infinity, easing: "ease-out" }
+        )
+      );
+    }, fadeInMs + 200)
+  );
+
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      [...parts.map((p) => p.node), el].forEach((node) => {
+        trackAnimation(
+          eventName,
+          node.animate([{ opacity: getComputedStyle(node).opacity }, { opacity: 0 }], {
+            duration: fadeOutMs,
+            fill: "forwards",
+          })
+        );
+      });
+      trackTimer(
+        eventName,
+        setTimeout(() => {
+          parts.forEach(({ node }) => node.remove());
+          el.remove();
+          onComplete?.();
+        }, fadeOutMs)
+      );
+    }, Math.max(0, durationMs - fadeOutMs))
+  );
 }
 
 // "chest_reveal": Kiste erscheint episch mit rotierendem Lichtstrahlen-Glow, wackelt

@@ -71,6 +71,14 @@
         "hold_ms": 13000,
         "fly_out_ms": 400,
         "position": { "top": 14, "left": 0, "width": 800, "height": 451 }
+      },
+      {
+        "type": "image",
+        "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+        "anim": "party",
+        "duration_ms": 4000,
+        "beat_ms": 500,
+        "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
       }
     ]
   },
@@ -378,6 +386,15 @@
     "color": "#e00000",
     "glow_color": "#ff4040",
     "position": { "top": 0, "left": 200, "width": 400, "height": 480 }
+  },
+
+  "party_demo": {
+    "type": "image",
+    "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
+    "anim": "party",
+    "duration_ms": 4000,
+    "beat_ms": 500,
+    "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
   },
 
   "chest_reveal_demo": {
