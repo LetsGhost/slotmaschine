@@ -24,6 +24,16 @@
         "src": "assets/overlays/bouncing_yaris.webm",
         "sound": "bouncing_yaris",
         "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+      },
+      {
+        "type": "image",
+        "src": "assets/overlays/jojo.jpg",
+        "sound": "jojo_leduledu",
+        "anim": "fade",
+        "fly_in_ms": 400,
+        "hold_ms": 3200,
+        "fly_out_ms": 400,
+        "position": { "top": 0, "left": 142, "width": 517, "height": 480 }
       }
     ]
   },
@@ -50,6 +60,17 @@
         "src": "assets/overlays/gojo_float.webm",
         "sound": "gojo_float",
         "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+      },
+      {
+        "type": "gif",
+        "src": "assets/overlays/montanablack.gif",
+        "sound": "monte_dance",
+        "anim": "fade",
+        "coin_rain": { "src": "assets/overlays/coin_placeholder.svg", "count": 400 },
+        "fly_in_ms": 400,
+        "hold_ms": 13000,
+        "fly_out_ms": 400,
+        "position": { "top": 14, "left": 0, "width": 800, "height": 451 }
       }
     ]
   },
@@ -305,6 +326,29 @@
     "src": "assets/overlays/bouncing_yaris.webm",
     "sound": "bouncing_yaris",
     "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+  },
+
+  "jojo_fade_demo": {
+    "type": "image",
+    "src": "assets/overlays/jojo.jpg",
+    "sound": "jojo_leduledu",
+    "anim": "fade",
+    "fly_in_ms": 400,
+    "hold_ms": 3200,
+    "fly_out_ms": 400,
+    "position": { "top": 0, "left": 142, "width": 517, "height": 480 }
+  },
+
+  "monte_dance_demo": {
+    "type": "gif",
+    "src": "assets/overlays/montanablack.gif",
+    "sound": "monte_dance",
+    "anim": "fade",
+    "coin_rain": { "src": "assets/overlays/coin_placeholder.svg", "count": 400 },
+    "fly_in_ms": 400,
+    "hold_ms": 13000,
+    "fly_out_ms": 400,
+    "position": { "top": 14, "left": 0, "width": 800, "height": 451 }
   },
 
   "chest_reveal_demo": {

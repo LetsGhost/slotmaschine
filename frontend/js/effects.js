@@ -299,6 +299,8 @@ function runFlyAnimation(eventName, el, entry, anim, onComplete) {
   const holdMs = entry.hold_ms ?? 1200;
   const flyOutMs = entry.fly_out_ms ?? 350;
 
+  if (entry.coin_rain) startCoinRain(eventName, entry.coin_rain, flyInMs + holdMs);
+
   trackAnimation(
     eventName,
     el.animate(anim.in, { duration: flyInMs, easing: anim.inEasing || "ease-out", fill: "forwards" })
@@ -1025,6 +1027,18 @@ function runCoinRainReveal(eventName, mainEl, entry, onComplete) {
       );
     }, revealDelayMs)
   );
+}
+
+// Optionaler Münzregen über einer Einblend-Animation (Feld "coin_rain" am
+// Eintrag): { src, count, duration_ms } - Münzen starten gleichmäßig verteilt
+// über duration_ms (Default: Dauer bis zum Ausblenden) und liegen über dem Bild.
+function startCoinRain(eventName, config, defaultDurationMs) {
+  const coinSrc = config.src || "assets/overlays/coin_placeholder.svg";
+  const count = config.count ?? 100;
+  const durationMs = config.duration_ms ?? defaultDurationMs;
+  for (let i = 0; i < count; i += 1) {
+    trackTimer(eventName, setTimeout(() => spawnCoin(eventName, coinSrc), Math.random() * durationMs));
+  }
 }
 
 function spawnCoin(eventName, coinSrc) {

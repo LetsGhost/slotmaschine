@@ -1,5 +1,7 @@
-/* Mauszeiger im Kiosk ausblenden (Touch und Klicks funktionieren weiter) */
-* { cursor: none !important; }
+/* Mauszeiger im Kiosk ausblenden (Touch und Klicks funktionieren weiter);
+   im Debug-Modus bleibt er sichtbar. */
+body:not(.debug-mode),
+body:not(.debug-mode) * { cursor: none !important; }
 
 * {
   box-sizing: border-box;

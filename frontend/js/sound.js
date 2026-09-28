@@ -25,6 +25,10 @@ const SOUND_FILES = {
   // assets_originals/overlays), -5dB; läuft zu bouncing_yaris.webm (Sek. 0-6,
   // Auto per rembg/isnet-general-use freigestellt).
   bouncing_yaris: "assets/audio/animations/win/bouncing_yaris.mp3",
+  // ~4s, so lang wie die "fade"-Einblendung von jojo.jpg.
+  jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.wav",
+  // ~13.8s, so lang wie die "fade"-Einblendung von montanablack.gif.
+  monte_dance: "assets/audio/animations/jackpot/success_monte_dance.wav",
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
