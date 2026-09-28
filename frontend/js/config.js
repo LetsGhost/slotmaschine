@@ -25,10 +25,10 @@ export const PAYLINES = [
 
 // Symbolnamen müssen exakt mit SYMBOLS in backend/config.py übereinstimmen.
 export const SYMBOL_ASSETS = {
-  cherry: "assets/sprites/cherry.png",
+  cherry: "assets/overlays/iltan-sumra.png",
   lemon: "assets/sprites/lemon.png",
   bell: "assets/sprites/bell.png",
-  star: "assets/sprites/star.png",
+  star: "assets/frame/buch.png",
   seven: "assets/sprites/seven.png",
 };
 
