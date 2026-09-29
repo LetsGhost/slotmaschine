@@ -46,6 +46,11 @@ const SOUND_FILES = {
   // (150 BPM = 400ms/Schlag), 400ms Ausblenden - passt auf die "party"-Animation
   // (duration_ms 4000, beat_ms 400, fade_out_ms 400).
   into_the_void: "assets/audio/animations/jackpot/into_the_void.mp3",
+  // Erste 4.2s von floraphonic-slot-machine-coin-payout-1-188227.mp3 (Original
+  // in assets_originals/audio), letzte 400ms ausgeblendet - so lang wie die
+  // "coin_rain_reveal"-Animation (reveal_delay 1800 + grow 500 + hold 1500 +
+  // fade_out 400).
+  coin_payout: "assets/audio/animations/jackpot/coin_payout.mp3",
   // ~13.8s, so lang wie die "fade"-Einblendung von montanablack.gif.
   monte_dance: "assets/audio/animations/jackpot/success_monte_dance.wav",
   // ~4.3s, so lang wie die rote Sieben der x7-Multiplikator-Animation.
