@@ -1,5 +1,5 @@
 import { init as initReels } from "./reels.js";
-import { loadEventMediaMap, showEvent, getEventNames, isPoolEvent } from "./effects.js";
+import { loadEventMediaMap, showEvent, showEventSequence, showMultiplierCombo, getEventNames, isPoolEvent } from "./effects.js";
 import { loadMultiplierConfig } from "./multipliers.js";
 import { preloadSounds, startBackgroundMusic } from "./sound.js";
 import { DISPLAY } from "./config.js";
@@ -41,7 +41,7 @@ if (!DEBUG_MODE) {
 const DEBUG_EVENT_CATEGORIES = [
   {
     title: "Spiel-Events (Pool)",
-    events: ["win_small", "win_jackpot", "lose", "multiplier_hit", "spin_animation", "lever_pull", "idle_attract"],
+    events: ["win_small", "win_jackpot", "lose", "multiplier_hit", "multiplier_combo", "spin_animation", "lever_pull", "idle_attract"],
   },
   {
     title: "Gewinn",
@@ -70,6 +70,21 @@ const DEBUG_EVENT_CATEGORIES = [
     ],
   },
   { title: "Multiplikator", events: ["sniper_count_demo", "case_open_demo", "basti_sieben_demo", "dramatic_zoom_demo", "pokemon_battle_demo"] },
+  // Buttons dieser Sektion spielen mit zufälligem Wert x2-x7 (bzw. beim
+  // Combo-Finale mit 2-3 zufälligen Treffern) statt des festen "value".
+  {
+    title: "Multiplikator XL (multiplier_anims.js)",
+    randomValue: true,
+    events: [
+      "halo_killstreak_demo",
+      "dmc_rank_demo",
+      "balatro_mult_demo",
+      "dbz_powerup_demo",
+      "money_printer_demo",
+      "hitmarker_combo_demo",
+      "combo_finale_demo",
+    ],
+  },
   {
     title: "Meme XL (meme_anims.js)",
     events: [
@@ -103,14 +118,49 @@ function createDebugSection(title) {
   return section;
 }
 
-function createEventButton(name) {
+function randomMultiplier() {
+  return 2 + Math.floor(Math.random() * 6);
+}
+
+// 2-3 zufällige Treffer im Format von spin_result.multiplier_hits.
+function randomMultiplierHits() {
+  const count = 2 + Math.floor(Math.random() * 2);
+  return Array.from({ length: count }, (_, col) => ({ row: 1, col, value: randomMultiplier() }));
+}
+
+function createEventButton(name, randomValue = false) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.textContent = isPoolEvent(name) ? `${name} 🎲` : name;
   btn.title = isPoolEvent(name)
     ? `showEvent("${name}") - wählt zufällig eine von mehreren Varianten`
     : `showEvent("${name}")`;
-  btn.addEventListener("click", () => showEvent(name));
+  btn.addEventListener("click", () => {
+    if (!randomValue) {
+      showEvent(name);
+      return;
+    }
+    const values = randomMultiplierHits().map((hit) => hit.value);
+    const context = name.startsWith("combo_")
+      ? { values, value: values.reduce((sum, v) => sum + v, 0) }
+      : { value: randomMultiplier() };
+    showEvent(name, { context });
+  });
+  return btn;
+}
+
+// Kompletter Ablauf wie nach einem echten Spin mit mehreren Treffern: jeder
+// Treffer aus dem "multiplier_hit"-Pool, danach das Combo-Finale.
+function createRandomComboButton() {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "Treffer + Combo 🎰";
+  btn.title = 'showEventSequence("multiplier_hit") + showMultiplierCombo() mit 2-3 zufälligen Treffern';
+  btn.addEventListener("click", async () => {
+    const hits = randomMultiplierHits();
+    await showEventSequence("multiplier_hit", hits);
+    await showMultiplierCombo(hits);
+  });
   return btn;
 }
 
@@ -133,12 +183,13 @@ function buildDebugPanel() {
   if (!panel) return;
 
   const available = new Set(getEventNames());
-  const sections = DEBUG_EVENT_CATEGORIES.map(({ title, events }) => {
+  const sections = DEBUG_EVENT_CATEGORIES.map(({ title, events, randomValue }) => {
     const section = createDebugSection(title);
     events
       .filter((name) => available.delete(name))
-      .forEach((name) => section.appendChild(createEventButton(name)));
+      .forEach((name) => section.appendChild(createEventButton(name, randomValue)));
     if (title === "Multiplikator") section.appendChild(createRandomCaseButton());
+    if (randomValue) section.appendChild(createRandomComboButton());
     return section;
   });
 

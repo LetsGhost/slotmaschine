@@ -110,6 +110,46 @@ const SOUND_FILES = {
   mlg_get_blazed: "assets/audio/animations/win/mlg_get_blazed.mp3",
 };
 
+// Sounds für die Multiplikator-Animationen aus multiplier_anims.js, die erst
+// noch heruntergeladen werden müssen: fehlende Dateien werden beim Start still
+// übersprungen (nur eine Sammel-Meldung in der Konsole), die Animationen
+// spielen dann ihren Synth-Fallback (SYNTH_SOUNDS unten). Datei ablegen genügt.
+const MULTI_DIR = "assets/audio/animations/multiplier";
+const OPTIONAL_SOUND_FILES = {
+  // Halo-Reach-Ansager ("halo_killstreak", Stufe = Multiplikator-Wert), aus
+  // "Halo: Reach - All Voiced Announcer Medals" (Sek. 0-12.3).
+  halo_double_kill: `${MULTI_DIR}/halo/double_kill.mp3`,
+  halo_triple_kill: `${MULTI_DIR}/halo/triple_kill.mp3`,
+  halo_overkill: `${MULTI_DIR}/halo/overkill.mp3`,
+  halo_killtacular: `${MULTI_DIR}/halo/killtacular.mp3`,
+  halo_killtrocity: `${MULTI_DIR}/halo/killtrocity.mp3`,
+  halo_killimanjaro: `${MULTI_DIR}/halo/killimanjaro.mp3`,
+  halo_killtastrophe: `${MULTI_DIR}/halo/killtastrophe.mp3`,
+  halo_killpocalypse: `${MULTI_DIR}/halo/killpocalypse.mp3`,
+  halo_killionaire: `${MULTI_DIR}/halo/killionaire.mp3`,
+  // Devil-May-Cry-5-Ansager ("dmc_rank"), aus "Devil May Cry 5 Style Rank
+  // Announcer Voice Clips" (jeweils die erste Aufnahme).
+  dmc_dismal: `${MULTI_DIR}/dmc/dismal.mp3`,
+  dmc_crazy: `${MULTI_DIR}/dmc/crazy.mp3`,
+  dmc_badass: `${MULTI_DIR}/dmc/badass.mp3`,
+  dmc_apocalyptic: `${MULTI_DIR}/dmc/apocalyptic.mp3`,
+  dmc_savage: `${MULTI_DIR}/dmc/savage.mp3`,
+  dmc_sick_skills: `${MULTI_DIR}/dmc/sick_skills.mp3`,
+  dmc_smokin_sexy_style: `${MULTI_DIR}/dmc/smokin_sexy_style.mp3`,
+  // Balatro: erste 6s des Balatro-Themes als Hintergrund der "balatro_mult"-
+  // Animation (wird am Ende abgebrochen); die Mult-Ticks bleiben Synth.
+  balatro_music: `${MULTI_DIR}/balatro/music.mp3`,
+  // Dragon Ball ("dbz_powerup"): Vegeta-Satz und Aufladen/Schrei.
+  over_9000: `${MULTI_DIR}/dbz/over_9000.mp3`,
+  dbz_powerup: `${MULTI_DIR}/dbz/powerup.mp3`,
+  // "money_printer": Brrr-Geräusch, wird am Ende der Animation abgebrochen.
+  money_printer: `${MULTI_DIR}/money_printer.mp3`,
+  // "hitmarker_combo": Abschluss-Ruf. wombo_combo beginnt mit "Happy feet!",
+  // "Wombo Combo" fällt auf ~1.25s (= wombo_text_delay_ms).
+  wombo_combo: `${MULTI_DIR}/wombo_combo.mp3`,
+  oh_baby_a_triple: `${MULTI_DIR}/oh_baby_a_triple.mp3`,
+};
+
 // Per Web Audio erzeugte Sounds (kein Asset nötig): werden beim Start einmal
 // offline gerendert und liegen danach wie normale Sounds in `buffers` - also
 // per Name aus event_media_map.json abspielbar. durationS = Länge des Buffers.
@@ -138,6 +178,16 @@ const SYNTH_SOUNDS = {
   airhorn: { durationS: 1.6, render: renderAirhorn },
   // Jubel-Arpeggio, wenn das DVD-Logo genau die Ecke trifft.
   corner: { durationS: 1.4, render: renderCorner },
+  // Fallbacks und Effekte für multiplier_anims.js: Halo-Medaillen-Ding,
+  // DMC-Klingen-Hieb, Balatro-Mult-Plopp, Scouter-Piepen,
+  // Explosion (Scouter platzt), Aura-Aufladen und Gelddrucker-Brummen.
+  medal: { durationS: 0.9, render: renderMedal },
+  rank_hit: { durationS: 0.35, render: renderRankHit },
+  mult_pop: { durationS: 0.25, render: renderMultPop },
+  scouter_beep: { durationS: 0.07, render: renderScouterBeep },
+  explosion: { durationS: 1.4, render: renderExplosion },
+  aura_charge: { durationS: 3, render: renderAuraCharge },
+  brrr: { durationS: 3, render: renderBrrr },
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
@@ -219,7 +269,7 @@ masterBus.connect(audioCtx.destination);
 
 const BUSES = { master: masterBus, music: musicBus, sfx: sfxBus };
 
-async function loadBuffer(name, url) {
+async function loadBuffer(name, url, { quiet = false } = {}) {
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -228,7 +278,7 @@ async function loadBuffer(name, url) {
     buffers.set(name, audioBuffer);
     return true;
   } catch (err) {
-    console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
+    if (!quiet) console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
     return false;
   }
 }
@@ -256,7 +306,23 @@ export async function preloadSounds() {
     ...Object.entries(SOUND_FILES).map(([name, url]) => loadBuffer(name, url)),
     loadSoundPools(),
     renderSynthSounds(),
+    loadOptionalSounds(),
   ]);
+}
+
+async function loadOptionalSounds() {
+  const entries = Object.entries(OPTIONAL_SOUND_FILES);
+  const loaded = await Promise.all(entries.map(([name, url]) => loadBuffer(name, url, { quiet: true })));
+  const missing = entries.filter((_, i) => !loaded[i]).map(([name]) => name);
+  if (missing.length > 0) {
+    console.info(`Optionale Multiplikator-Sounds fehlen (Synth-Fallback aktiv): ${missing.join(", ")}`);
+  }
+}
+
+// true, wenn der Sound geladen bzw. erzeugt ist - für Animationen, die auf
+// einen Synth-Sound ausweichen, solange eine optionale Datei fehlt.
+export function hasSound(name) {
+  return buffers.has(name);
 }
 
 // --- Synthetisierte Sounds (SYNTH_SOUNDS) --------------------------------
@@ -390,6 +456,64 @@ function renderCorner(ctx) {
     synthNote(ctx, { freqs: [freq, freq * 2], start: i * 0.1, duration: 0.9 - i * 0.1, type: "triangle", peak: 0.4, attack: 0.005, release: 0.7 - i * 0.1, cutoff: 8000 });
   });
   synthNoise(ctx, { start: 0.35, duration: 1, peak: 0.08, attack: 0.05, release: 0.8, filter: "highpass", freq: 6000 });
+}
+
+// Zwei helle Glockentöne (Quinte), wie das Einblenden einer Halo-Medaille.
+function renderMedal(ctx) {
+  synthNote(ctx, { freqs: [1318.5, 1975.5], start: 0, duration: 0.5, type: "triangle", peak: 0.35, attack: 0.003, release: 0.45, cutoff: 9000 });
+  synthNote(ctx, { freqs: [1760, 2637], start: 0.08, duration: 0.8, type: "sine", peak: 0.3, attack: 0.003, release: 0.7, cutoff: 9000 });
+}
+
+// Klingen-Zischen mit dumpfem Schlag darunter.
+function renderRankHit(ctx) {
+  synthNoise(ctx, { start: 0, duration: 0.18, peak: 0.55, attack: 0.01, release: 0.15, freq: 5000, freqEnd: 1200, q: 1.5 });
+  synthNote(ctx, { freqs: [90], start: 0, duration: 0.3, type: "sine", peak: 0.6, attack: 0.002, release: 0.28, cutoff: 2000, bend: 0.5 });
+}
+
+// Kurzer, runder Plopp - wird per playbackRate pro Zählschritt höher gespielt.
+function renderMultPop(ctx) {
+  synthNote(ctx, { freqs: [520, 1040], start: 0, duration: 0.22, type: "square", peak: 0.25, attack: 0.002, release: 0.2, cutoff: 2600, bend: 1.5 });
+}
+
+function renderScouterBeep(ctx) {
+  synthNote(ctx, { freqs: [2100], start: 0, duration: 0.06, type: "square", peak: 0.12, attack: 0.002, release: 0.03, cutoff: 6000 });
+}
+
+function renderExplosion(ctx) {
+  synthNoise(ctx, { start: 0, duration: 1.35, peak: 0.9, attack: 0.005, release: 1.2, filter: "lowpass", freq: 3000, freqEnd: 150 });
+  synthNote(ctx, { freqs: [60], start: 0, duration: 0.8, type: "sine", peak: 0.7, attack: 0.002, release: 0.7, cutoff: 1000, bend: 0.4 });
+}
+
+// Anschwellendes Brummen mit aufsteigendem Rauschen (Aura lädt auf).
+function renderAuraCharge(ctx) {
+  synthNote(ctx, { freqs: [55, 82.4, 110], start: 0, duration: 2.9, type: "sawtooth", peak: 0.45, attack: 1.6, release: 0.6, cutoff: 900, vibrato: 0.04, bend: 2 });
+  synthNoise(ctx, { start: 0, duration: 2.9, peak: 0.3, attack: 1.8, release: 0.6, freq: 400, freqEnd: 5000, q: 0.7 });
+}
+
+// Schnarrendes Drucker-"Brrr": tiefe Rechteckwelle mit schnellem Tremolo.
+function renderBrrr(ctx) {
+  const osc = ctx.createOscillator();
+  osc.type = "square";
+  osc.frequency.value = 70;
+  const tremolo = ctx.createGain();
+  const lfo = ctx.createOscillator();
+  lfo.type = "square";
+  lfo.frequency.value = 28;
+  const depth = ctx.createGain();
+  depth.gain.value = 0.5;
+  lfo.connect(depth).connect(tremolo.gain);
+  tremolo.gain.value = 0.5;
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1400;
+  const gain = ctx.createGain();
+  applyEnvelope(gain.gain, { start: 0, duration: 2.95, level: 0.35, attack: 0.03, release: 0.2 });
+  osc.connect(tremolo).connect(filter).connect(gain).connect(ctx.destination);
+  [osc, lfo].forEach((node) => {
+    node.start(0);
+    node.stop(2.95);
+  });
+  synthNoise(ctx, { start: 0, duration: 2.95, peak: 0.08, attack: 0.03, release: 0.2, freq: 2500, q: 1 });
 }
 
 // G - F# - Es (Moll, absteigend), der letzte Schlag lang mit Vibrato.

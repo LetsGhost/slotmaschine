@@ -1,6 +1,6 @@
 import { startSpin, stopOnSymbol, showWinningLines } from "./reels.js";
 import { GRID_COLS, DISPLAY, SPIN_TAP_AREA } from "./config.js";
-import { showEvent, showEventSequence, hideAll, clearEvent, getEventNames } from "./effects.js";
+import { showEvent, showEventSequence, showMultiplierCombo, hideAll, clearEvent, getEventNames } from "./effects.js";
 import { playSound, startLoop, setLoopVolume, stopLoop } from "./sound.js";
 import { playMultiplierReveals, clearMultipliers } from "./multipliers.js";
 
@@ -73,7 +73,8 @@ socket.on("state_update", (data) => {
 // Reihenfolge: Walzen stoppen -> Multiplikator-Zahlen unter den Symbolen
 // einblenden -> Gewinnlinie(n) einzeichnen -> pro Gewinnlinien-Multiplikator-
 // Treffer eine eigene Overlay-Animation aus dem "multiplier_hit"-Pool
-// (event_media_map.json), eine nach der anderen -> erst danach Auszahlung.
+// (event_media_map.json), eine nach der anderen -> bei mehreren Treffern das
+// Combo-Finale ("multiplier_combo") -> erst danach Auszahlung.
 socket.on("spin_result", async (data) => {
   clearEvent("spin_animation");
 
@@ -91,6 +92,7 @@ socket.on("spin_result", async (data) => {
   await playMultiplierReveals(data.multipliers);
   showWinningLines(data.winning_lines);
   await showEventSequence("multiplier_hit", data.multiplier_hits);
+  await showMultiplierCombo(data.multiplier_hits);
 
   revealPendingPayout();
   if (data.win === 0) {

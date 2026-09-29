@@ -361,6 +361,11 @@
         "src": "assets/overlays/sausage_knife.gif",
         "duration_ms": null,
         "position": { "top": 43, "left": 0, "width": 700, "height": 394 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/subway_surfers.webm",
+        "position": { "top": 0, "left": 578, "width": 222, "height": 480 }
       }
     ]
   },
@@ -412,6 +417,12 @@
         "player_name": "OLEG",
         "weight": 1
       },
+      { "type": "text", "anim": "halo_killstreak", "weight": 2 },
+      { "type": "text", "anim": "dmc_rank", "weight": 2 },
+      { "type": "text", "anim": "balatro_mult", "weight": 2 },
+      { "type": "text", "anim": "dbz_powerup", "weight": 1 },
+      { "type": "text", "anim": "money_printer", "weight": 2 },
+      { "type": "text", "anim": "hitmarker_combo", "weight": 2 },
       {
         "type": "text",
         "text": "7",
@@ -426,6 +437,14 @@
         "glow_color": "#ff4040",
         "position": { "top": 0, "left": 200, "width": 400, "height": 480 }
       }
+    ]
+  },
+
+  "multiplier_combo": {
+    "duck_music": 0.4,
+    "anim_pool": [
+      { "type": "text", "anim": "combo_finale", "finale": "halo_killstreak" },
+      { "type": "text", "anim": "combo_finale", "finale": "dmc_rank" }
     ]
   },
 
@@ -868,6 +887,14 @@
     "player_name": "OLEG",
     "value": 6
   },
+
+  "halo_killstreak_demo": { "type": "text", "anim": "halo_killstreak", "value": 6 },
+  "dmc_rank_demo": { "type": "text", "anim": "dmc_rank", "value": 7 },
+  "balatro_mult_demo": { "type": "text", "anim": "balatro_mult", "value": 5 },
+  "dbz_powerup_demo": { "type": "text", "anim": "dbz_powerup", "value": 6 },
+  "money_printer_demo": { "type": "text", "anim": "money_printer", "value": 5 },
+  "hitmarker_combo_demo": { "type": "text", "anim": "hitmarker_combo", "value": 3 },
+  "combo_finale_demo": { "type": "text", "anim": "combo_finale", "finale": "halo_killstreak", "values": [2, 3, 4] },
 
   "gta_wasted_demo": {
     "type": "text",

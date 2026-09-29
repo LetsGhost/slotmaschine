@@ -14,6 +14,7 @@ import {
   fadeOutAndRemove,
 } from "./fx_core.js";
 import { MEME_ANIMS } from "./meme_anims.js";
+import { MULTIPLIER_ANIMS } from "./multiplier_anims.js";
 
 let mediaMap = {};
 
@@ -317,8 +318,9 @@ export function showEvent(eventName, { onComplete: onDone, context } = {}) {
     return;
   }
 
-  // Aufwändigere Meme-Animationen aus meme_anims.js (alle mit derselben Signatur).
-  const memeAnim = MEME_ANIMS[entry.anim];
+  // Aufwändigere Meme-Animationen aus meme_anims.js / multiplier_anims.js
+  // (alle mit derselben Signatur).
+  const memeAnim = MEME_ANIMS[entry.anim] ?? MULTIPLIER_ANIMS[entry.anim];
   if (memeAnim) {
     memeAnim(eventName, el, entry, pos, onComplete, context);
     return;
@@ -1997,6 +1999,17 @@ export function showEventSequence(eventName, contexts) {
     chain = chain.then(() => new Promise((resolve) => showEvent(eventName, { onComplete: resolve, context })));
   }
   return chain;
+}
+
+// Combo-Finale nach mehreren Multiplikator-Treffern eines Spins: zeigt das
+// Event "multiplier_combo" einmal mit context { value: Summe, values: Einzel-
+// werte } (Summe wie combine_mode "sum" in backend/multiplier_config.json).
+// Bei weniger als zwei Treffern oder ohne Eintrag sofort erfüllt.
+export function showMultiplierCombo(hits) {
+  if (!hits || hits.length < 2 || !mediaMap.multiplier_combo) return Promise.resolve();
+  const values = hits.map((hit) => hit.value);
+  const value = values.reduce((sum, v) => sum + v, 0);
+  return showEventSequence("multiplier_combo", [{ value, values }]);
 }
 
 export function clearEvent(eventName) {
