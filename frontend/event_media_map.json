@@ -63,6 +63,26 @@
         "hold_ms": 1200,
         "fly_out_ms": 500,
         "position": { "top": 130, "left": 290, "width": 220, "height": 220 }
+      },
+      {
+        "type": "text",
+        "anim": "stonks",
+        "direction": "up",
+        "sound": "stonks"
+      },
+      {
+        "type": "text",
+        "anim": "gta",
+        "variant": "passed",
+        "sound": "gta_passed"
+      },
+      {
+        "type": "image",
+        "src": "assets/overlays/oleg_1.JPG",
+        "anim": "mlg_montage",
+        "sound": "airhorn",
+        "glasses": { "x": 50, "y": 48, "w": 70 },
+        "position": { "top": 60, "left": 310, "width": 180, "height": 240 }
       }
     ]
   },
@@ -136,6 +156,17 @@
         "beat_ms": 500,
         "coin_rain": { "src": "assets/overlays/coin_placeholder.svg", "count": 150 },
         "position": { "top": 110, "left": 280, "width": 240, "height": 240 }
+      },
+      {
+        "type": "text",
+        "anim": "laser_eyes",
+        "sound": "laser"
+      },
+      {
+        "type": "text",
+        "anim": "brainrot_split",
+        "gameplay_src": "assets/overlays/subway_surfers.webm",
+        "runner_src": "assets/overlays/sybau_domi.png"
       }
     ]
   },
@@ -261,12 +292,52 @@
         "reveal_ms": 1500,
         "fade_out_ms": 300,
         "position": { "top": 130, "left": 300, "width": 200, "height": 220 }
+      },
+      {
+        "type": "text",
+        "anim": "to_be_continued",
+        "sound": "roundabout",
+        "freeze_at_ms": 0
+      },
+      {
+        "type": "text",
+        "anim": "thanos_snap",
+        "sound": ["snap", { "name": "dust", "delay_ms": 300 }]
+      },
+      {
+        "type": "text",
+        "anim": "stonks",
+        "direction": "down"
+      },
+      {
+        "type": "text",
+        "anim": "crt_off",
+        "sound": ["crt_off", { "name": "tv_static", "delay_ms": 1300 }]
+      },
+      {
+        "type": "text",
+        "anim": "gta",
+        "variant": "wasted",
+        "sound": "gta_wasted"
+      },
+      {
+        "type": "text",
+        "anim": "among_us_eject",
+        "sound": "among_us_eject",
+        "name": "Domi"
       }
     ]
   },
 
   "idle_attract": {
     "anim_pool": [
+      {
+        "type": "image",
+        "src": "assets/sprites/book_of_rah_logo.jpg",
+        "anim": "dvd_bounce",
+        "speed_px_s": 150,
+        "position": { "top": 0, "left": 0, "width": 184, "height": 120 }
+      }
     ]
   },
 
@@ -329,6 +400,14 @@
         "anim": "dramatic_zoom",
         "sound": "dramatic",
         "weight": 2
+      },
+      {
+        "type": "text",
+        "anim": "pokemon_battle",
+        "sound": "pokemon_battle",
+        "player_src": "assets/overlays/egypt_oleg.png",
+        "player_name": "OLEG",
+        "weight": 1
       },
       {
         "type": "text",
@@ -732,6 +811,99 @@
     "beat_ms": 500,
     "coin_rain": { "src": "assets/overlays/coin_placeholder.svg", "count": 150 },
     "position": { "top": 110, "left": 280, "width": 240, "height": 240 }
+  },
+
+  "to_be_continued_demo": {
+    "type": "text",
+    "anim": "to_be_continued",
+    "sound": "roundabout",
+    "freeze_at_ms": 0
+  },
+
+  "thanos_snap_demo": {
+    "type": "text",
+    "anim": "thanos_snap",
+    "sound": ["snap", { "name": "dust", "delay_ms": 300 }]
+  },
+
+  "laser_eyes_demo": {
+    "type": "text",
+    "anim": "laser_eyes",
+    "sound": "laser"
+  },
+
+  "stonks_up_demo": {
+    "type": "text",
+    "anim": "stonks",
+    "direction": "up",
+    "sound": "stonks"
+  },
+
+  "stonks_down_demo": {
+    "type": "text",
+    "anim": "stonks",
+    "direction": "down"
+  },
+
+  "crt_off_demo": {
+    "type": "text",
+    "anim": "crt_off",
+    "sound": ["crt_off", { "name": "tv_static", "delay_ms": 1300 }]
+  },
+
+  "pokemon_battle_demo": {
+    "type": "text",
+    "anim": "pokemon_battle",
+    "sound": "pokemon_battle",
+    "player_src": "assets/overlays/egypt_oleg.png",
+    "player_name": "OLEG",
+    "value": 6
+  },
+
+  "gta_wasted_demo": {
+    "type": "text",
+    "anim": "gta",
+    "variant": "wasted",
+    "sound": "gta_wasted"
+  },
+
+  "gta_passed_demo": {
+    "type": "text",
+    "anim": "gta",
+    "variant": "passed",
+    "sound": "gta_passed"
+  },
+
+  "among_us_eject_demo": {
+    "type": "text",
+    "anim": "among_us_eject",
+    "sound": "among_us_eject",
+    "name": "Domi"
+  },
+
+  "mlg_montage_demo": {
+    "type": "image",
+    "src": "assets/overlays/oleg_1.JPG",
+    "anim": "mlg_montage",
+    "sound": "airhorn",
+    "glasses": { "x": 50, "y": 48, "w": 70 },
+    "position": { "top": 60, "left": 310, "width": 180, "height": 240 }
+  },
+
+  "brainrot_split_demo": {
+    "type": "text",
+    "anim": "brainrot_split",
+    "gameplay_src": "assets/overlays/subway_surfers.webm",
+    "runner_src": "assets/overlays/sybau_domi.png"
+  },
+
+  "dvd_bounce_demo": {
+    "type": "image",
+    "src": "assets/sprites/book_of_rah_logo.jpg",
+    "anim": "dvd_bounce",
+    "aim_corner": true,
+    "duration_ms": 12000,
+    "position": { "top": 0, "left": 0, "width": 184, "height": 120 }
   },
 
   "anim_pool_demo": [

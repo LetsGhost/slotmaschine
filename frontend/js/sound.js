@@ -82,6 +82,23 @@ const SOUND_FILES = {
   salamalekum: "assets/audio/animations/jackpot/salamalekum.mp3",
 };
 
+// Optionale Sounds für die Meme-Animationen aus meme_anims.js: Die Dateien
+// sind (noch) nicht im Projekt - einfach unter genau diesem Pfad ablegen, dann
+// spielen sie automatisch. Fehlt eine Datei, bleibt es ohne Warnung still.
+const OPTIONAL_SOUND_FILES = {
+  // "Roundabout"-Intro (Yes) bis zum Einfrieren - "to_be_continued".
+  roundabout: "assets/audio/animations/lose/roundabout.mp3",
+  // GTA-Sounds für "gta" (variant "wasted" bzw. "passed").
+  gta_wasted: "assets/audio/animations/lose/gta_wasted.mp3",
+  gta_passed: "assets/audio/animations/win/gta_passed.mp3",
+  // Kampfmusik für "pokemon_battle".
+  pokemon_battle: "assets/audio/animations/multiplier/pokemon_battle.mp3",
+  // Auswurf-Sound für "among_us_eject".
+  among_us_eject: "assets/audio/animations/lose/among_us_eject.mp3",
+  // Stonks-Sound für "stonks" (direction "up").
+  stonks: "assets/audio/animations/win/stonks.mp3",
+};
+
 // Per Web Audio erzeugte Sounds (kein Asset nötig): werden beim Start einmal
 // offline gerendert und liegen danach wie normale Sounds in `buffers` - also
 // per Name aus event_media_map.json abspielbar. durationS = Länge des Buffers.
@@ -93,6 +110,23 @@ const SYNTH_SOUNDS = {
   win_error: { durationS: 0.6, render: renderWinError },
   // Tiefer Gong für den Urteils-Stempel der "pharaoh_verdict"-Animation.
   gong: { durationS: 3.5, render: renderGong },
+  // Fingerschnipsen und Staub-Rauschen für "thanos_snap".
+  snap: { durationS: 0.3, render: renderSnap },
+  dust: { durationS: 2.6, render: renderDust },
+  // Aufladen (0.7s) + Laser-Brummen (2s) für "laser_eyes".
+  laser: { durationS: 3, render: renderLaser },
+  // Röhren-Abschalten und Rauschen beim Wiedereinschalten für "crt_off".
+  crt_off: { durationS: 0.7, render: renderCrtOff },
+  tv_static: { durationS: 1, render: renderTvStatic },
+  // Pokémon-Kampf: Treffer, K.O. und Textbox-Piepsen.
+  poke_hit: { durationS: 0.4, render: renderPokeHit },
+  poke_faint: { durationS: 1.2, render: renderPokeFaint },
+  text_blip: { durationS: 0.06, render: renderTextBlip },
+  // MLG-Montage: Hitmarker-Klick und Airhorn (3 Stöße).
+  hitmarker: { durationS: 0.15, render: renderHitmarker },
+  airhorn: { durationS: 1.6, render: renderAirhorn },
+  // Jubel-Arpeggio, wenn das DVD-Logo genau die Ecke trifft.
+  corner: { durationS: 1.4, render: renderCorner },
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
@@ -172,7 +206,7 @@ masterBus.connect(audioCtx.destination);
 
 const BUSES = { master: masterBus, music: musicBus, sfx: sfxBus };
 
-async function loadBuffer(name, url) {
+async function loadBuffer(name, url, { quiet = false } = {}) {
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -181,7 +215,7 @@ async function loadBuffer(name, url) {
     buffers.set(name, audioBuffer);
     return true;
   } catch (err) {
-    console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
+    if (!quiet) console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
     return false;
   }
 }
@@ -207,6 +241,7 @@ async function loadSoundPools() {
 export async function preloadSounds() {
   await Promise.all([
     ...Object.entries(SOUND_FILES).map(([name, url]) => loadBuffer(name, url)),
+    ...Object.entries(OPTIONAL_SOUND_FILES).map(([name, url]) => loadBuffer(name, url, { quiet: true })),
     loadSoundPools(),
     renderSynthSounds(),
   ]);
@@ -229,22 +264,20 @@ async function renderSynthSounds() {
 }
 
 // Ein Akkord (mehrere Oszillatoren) mit Hüllkurve durch einen Tiefpass.
-// release = Ausklingzeit am Ende, vibrato = Tonhöhenschwankung (Anteil der Frequenz).
-function synthNote(ctx, { freqs, start, duration, type = "sawtooth", peak = 0.5, attack = 0.01, release = 0.3, cutoff = 1800, vibrato = 0 }) {
+// release = Ausklingzeit am Ende, vibrato = Tonhöhenschwankung (Anteil der
+// Frequenz), bend = Faktor, auf den die Tonhöhe bis zum Ende gleitet (1 = fest).
+function synthNote(ctx, { freqs, start, duration, type = "sawtooth", peak = 0.5, attack = 0.01, release = 0.3, cutoff = 1800, vibrato = 0, bend = 1 }) {
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
   filter.frequency.value = cutoff;
   const gain = ctx.createGain();
   filter.connect(gain).connect(ctx.destination);
-  const level = peak / freqs.length;
-  gain.gain.setValueAtTime(0, start);
-  gain.gain.linearRampToValueAtTime(level, start + attack);
-  gain.gain.setValueAtTime(level, Math.max(start + attack, start + duration - release));
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  applyEnvelope(gain.gain, { start, duration, level: peak / freqs.length, attack, release });
   freqs.forEach((freq) => {
     const osc = ctx.createOscillator();
     osc.type = type;
-    osc.frequency.value = freq;
+    osc.frequency.setValueAtTime(freq, start);
+    if (bend !== 1) osc.frequency.exponentialRampToValueAtTime(freq * bend, start + duration);
     if (vibrato) {
       const lfo = ctx.createOscillator();
       lfo.frequency.value = 5.5;
@@ -258,6 +291,93 @@ function synthNote(ctx, { freqs, start, duration, type = "sawtooth", peak = 0.5,
     osc.start(start);
     osc.stop(start + duration);
   });
+}
+
+// Hüllkurve: linear auf `level` einschwingen, halten, am Ende exponentiell ausklingen.
+function applyEnvelope(param, { start, duration, level, attack, release }) {
+  param.setValueAtTime(0, start);
+  param.linearRampToValueAtTime(level, start + attack);
+  param.setValueAtTime(level, Math.max(start + attack, start + duration - release));
+  param.exponentialRampToValueAtTime(0.0001, start + duration);
+}
+
+// Gefiltertes weißes Rauschen; freqEnd lässt die Filterfrequenz gleiten.
+function synthNoise(ctx, { start, duration, peak = 0.3, attack = 0.005, release = 0.1, filter = "bandpass", freq = 1000, freqEnd = freq, q = 1 }) {
+  const noise = ctx.createBuffer(1, Math.ceil(duration * ctx.sampleRate), ctx.sampleRate);
+  const data = noise.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+  const source = ctx.createBufferSource();
+  source.buffer = noise;
+  const biquad = ctx.createBiquadFilter();
+  biquad.type = filter;
+  biquad.Q.value = q;
+  biquad.frequency.setValueAtTime(freq, start);
+  if (freqEnd !== freq) biquad.frequency.exponentialRampToValueAtTime(freqEnd, start + duration);
+  const gain = ctx.createGain();
+  applyEnvelope(gain.gain, { start, duration, level: peak, attack, release });
+  source.connect(biquad).connect(gain).connect(ctx.destination);
+  source.start(start);
+}
+
+function renderSnap(ctx) {
+  synthNoise(ctx, { start: 0, duration: 0.12, peak: 0.9, release: 0.1, filter: "highpass", freq: 1800 });
+  synthNote(ctx, { freqs: [2400], start: 0, duration: 0.05, type: "sine", peak: 0.4, attack: 0.001, release: 0.045, cutoff: 8000 });
+}
+
+// Anschwellendes, absinkendes Rieseln.
+function renderDust(ctx) {
+  synthNoise(ctx, { start: 0, duration: 2.5, peak: 0.22, attack: 0.8, release: 1.5, freq: 3000, freqEnd: 400, q: 0.8 });
+}
+
+function renderLaser(ctx) {
+  synthNote(ctx, { freqs: [200], start: 0, duration: 0.75, type: "sine", peak: 0.35, attack: 0.7, release: 0.05, cutoff: 8000, bend: 6 });
+  synthNote(ctx, { freqs: [110, 220, 331], start: 0.7, duration: 2.2, type: "sawtooth", peak: 0.55, attack: 0.02, release: 0.4, cutoff: 2400, vibrato: 0.03 });
+  synthNoise(ctx, { start: 0.7, duration: 2.2, peak: 0.15, release: 0.4, freq: 2500, q: 2 });
+}
+
+function renderCrtOff(ctx) {
+  synthNoise(ctx, { start: 0, duration: 0.05, peak: 0.6, release: 0.04, filter: "lowpass", freq: 3000 });
+  synthNote(ctx, { freqs: [7000], start: 0, duration: 0.6, type: "sine", peak: 0.08, attack: 0.01, release: 0.5, cutoff: 12000, bend: 0.03 });
+}
+
+function renderTvStatic(ctx) {
+  synthNoise(ctx, { start: 0, duration: 0.95, peak: 0.28, attack: 0.01, release: 0.4, filter: "lowpass", freq: 6000 });
+}
+
+function renderPokeHit(ctx) {
+  synthNoise(ctx, { start: 0, duration: 0.2, peak: 0.6, release: 0.18, filter: "lowpass", freq: 2500 });
+  synthNote(ctx, { freqs: [140], start: 0, duration: 0.35, type: "square", peak: 0.35, attack: 0.002, release: 0.3, cutoff: 3000, bend: 0.4 });
+}
+
+function renderPokeFaint(ctx) {
+  synthNote(ctx, { freqs: [900], start: 0, duration: 1.1, type: "square", peak: 0.25, attack: 0.01, release: 0.3, cutoff: 4000, bend: 0.1 });
+}
+
+function renderTextBlip(ctx) {
+  synthNote(ctx, { freqs: [1250], start: 0, duration: 0.05, type: "square", peak: 0.15, attack: 0.002, release: 0.02, cutoff: 5000 });
+}
+
+function renderHitmarker(ctx) {
+  synthNoise(ctx, { start: 0, duration: 0.06, peak: 0.7, release: 0.05, filter: "highpass", freq: 3500 });
+  synthNote(ctx, { freqs: [3200], start: 0, duration: 0.08, type: "triangle", peak: 0.35, attack: 0.001, release: 0.07, cutoff: 10000 });
+}
+
+// Zwei kurze und ein langer Stoß, leicht nach oben gezogen wie ein echtes Horn.
+function renderAirhorn(ctx) {
+  [
+    [0, 0.17],
+    [0.22, 0.17],
+    [0.44, 1.1],
+  ].forEach(([start, duration]) => {
+    synthNote(ctx, { freqs: [415, 523, 622, 830], start, duration, type: "sawtooth", peak: 0.7, attack: 0.015, release: 0.08, cutoff: 3200, bend: 1.03 });
+  });
+}
+
+function renderCorner(ctx) {
+  [523.3, 659.3, 784, 1046.5].forEach((freq, i) => {
+    synthNote(ctx, { freqs: [freq, freq * 2], start: i * 0.1, duration: 0.9 - i * 0.1, type: "triangle", peak: 0.4, attack: 0.005, release: 0.7 - i * 0.1, cutoff: 8000 });
+  });
+  synthNoise(ctx, { start: 0.35, duration: 1, peak: 0.08, attack: 0.05, release: 0.8, filter: "highpass", freq: 6000 });
 }
 
 // G - F# - Es (Moll, absteigend), der letzte Schlag lang mit Vibrato.
