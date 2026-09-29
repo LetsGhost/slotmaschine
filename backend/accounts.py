@@ -62,14 +62,6 @@ class AccountManager:
             self.active_uid = uid
             return "logged_in", self.accounts[uid]["credits"]
 
-    def activate_default_profile(self, uid: str, start_credits: int) -> None:
-        """VORÜBERGEHEND (siehe config.DEFAULT_PROFILE_UID): Profil ohne Karte aktivieren."""
-        with self._lock:
-            if uid not in self.accounts:
-                self.accounts[uid] = {"credits": start_credits}
-                self._save()
-            self.active_uid = uid
-
     def get_active_credits(self) -> int | None:
         with self._lock:
             if self.active_uid is None:

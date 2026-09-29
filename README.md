@@ -93,9 +93,8 @@ nächsten Server-Neustart, dann greift wieder der Wert aus der JSON-Datei.
 **NFC-Kartenkonten (Phase 5):** Guthaben liegt pro Karten-UID in
 `backend/accounts.json` (`backend/accounts.py`). Unbekannte Karte → neues
 Konto (0), andere bekannte Karte → Login, dieselbe aktive Karte erneut
-auflegen → +100. Nach einem Server-Neustart ist keine Karte aktiv (Ausnahme:
-Default-Profil, siehe unten). Ohne PN532
-(PC) läuft `backend/nfc_handler.py` im Mock-Modus; Kartenscans dann simulieren
+auflegen → +100. Nach einem Server-Neustart ist keine Karte aktiv. Ohne
+PN532 (PC) läuft `backend/nfc_handler.py` im Mock-Modus; Kartenscans dann simulieren
 über:
 
 - Debug-Panel: Buttons `Karte MOCK01..03` oder eigene UID eingeben,
@@ -104,17 +103,6 @@ Default-Profil, siehe unten). Ohne PN532
 - HTTP: `curl -X POST localhost:5000/debug/nfc/MOCK01`,
   `curl localhost:5000/debug/accounts` (nur im Debug-Modus)
 - Automatische Tests (ohne Server/Hardware): `cd backend && python -m unittest test_nfc -v`
-
-> **VORÜBERGEHEND – Default-Profil ohne Karte:** Beim Serverstart wird
-> automatisch das Profil `DEFAULT` aktiv (beim ersten Start mit 1000 Credits
-> in `accounts.json` angelegt, danach bleibt das Guthaben erhalten). Es kann
-> also sofort ohne Karte gespielt werden; echte Karten auflegen funktioniert
-> weiterhin und wechselt weg vom Default-Profil.
-> **Zum Entfernen:** in `backend/config.py` `DEFAULT_PROFILE_UID = None`
-> setzen. Komplett rausnehmen: `DEFAULT_PROFILE_UID`/`DEFAULT_PROFILE_CREDITS`
-> in `config.py`, den `activate_default_profile`-Aufruf in `backend/app.py`,
-> die Methode `activate_default_profile` in `backend/accounts.py` und den
-> Eintrag `"DEFAULT"` in `backend/accounts.json` löschen.
 
 Da noch keine echten Bild-/Sound-Assets vorhanden sind, zeigt das Frontend
 Platzhalter (graue Kacheln mit Symbolnamen als Text, keine Sounds). Das
