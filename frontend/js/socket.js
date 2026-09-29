@@ -5,7 +5,6 @@ import { playSound, startLoop, setLoopVolume, stopLoop } from "./sound.js";
 import { playMultiplierReveals, clearMultipliers } from "./multipliers.js";
 
 const IDLE_TIMEOUT_MS = 30000;
-const JACKPOT_THRESHOLD = 100;
 // Wahrscheinlichkeit (0-1), dass beim Spin-Start eine Extra-Animation aus dem
 // "spin_animation"-Pool (event_media_map.json) während des Spinnens gezeigt wird.
 const SPIN_EXTRA_CHANCE = 0.3;
@@ -42,7 +41,9 @@ function revealPendingPayout() {
   winEl.textContent = data?.amount ?? 0;
   if (!data || data.amount <= 0) return;
   // Gewinn-Sounds kommen aus event_media_map.json ("sounds" am Event).
-  showEvent(data.amount >= JACKPOT_THRESHOLD ? "win_jackpot" : "win_small");
+  // Jackpot entscheidet der Server relativ zum Einsatz (backend/config.py:
+  // JACKPOT_WIN_FACTOR).
+  showEvent(data.jackpot ? "win_jackpot" : "win_small");
 }
 
 function resetIdleTimer() {

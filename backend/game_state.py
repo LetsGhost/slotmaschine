@@ -102,7 +102,11 @@ class GameState:
         uid = self._spin_uid
         if win > 0:
             self.accounts.add(uid, win)
-        self.emit("payout", {"amount": win, "credits": self.accounts.balance(uid)})
+        jackpot = win > 0 and win >= self._spin_bet * config.JACKPOT_WIN_FACTOR
+        self.emit(
+            "payout",
+            {"amount": win, "credits": self.accounts.balance(uid), "bet": self._spin_bet, "jackpot": jackpot},
+        )
         self._emit_credits(uid)
 
         self._set_state(State.IDLE)

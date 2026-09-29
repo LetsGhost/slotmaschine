@@ -305,6 +305,41 @@ export function showEvent(eventName, { onComplete: onDone, context } = {}) {
     return;
   }
 
+  if (entry.anim === "lobotomy_zoom") {
+    runLobotomyZoom(eventName, el, entry, pos, onComplete);
+    return;
+  }
+
+  if (entry.anim === "vine_boom") {
+    runVineBoom(eventName, el, entry, onComplete);
+    return;
+  }
+
+  if (entry.anim === "deep_fried") {
+    runDeepFried(eventName, el, entry, pos, onComplete);
+    return;
+  }
+
+  if (entry.anim === "pharaoh_verdict") {
+    runPharaohVerdict(eventName, el, entry, pos, onComplete);
+    return;
+  }
+
+  if (entry.anim === "peek") {
+    runPeek(eventName, el, entry, pos, onComplete);
+    return;
+  }
+
+  if (entry.anim === "error_spam") {
+    runErrorSpam(eventName, el, entry, onComplete);
+    return;
+  }
+
+  if (entry.anim === "dramatic_zoom") {
+    runDramaticZoom(eventName, el, entry, onComplete, context);
+    return;
+  }
+
   const anim = entry.anim && ANIMATIONS[entry.anim];
   if (anim) {
     runFlyAnimation(eventName, el, entry, anim, onComplete);
@@ -1262,6 +1297,802 @@ function spawnCoin(eventName, coinSrc) {
   );
   trackAnimation(eventName, player);
   player.onfinish = () => coin.remove();
+}
+
+// --- Hilfsfunktionen für die Meme-Animationen unten ----------------------
+
+// Absolut positioniertes <div> auf dem Overlay-Layer (vor `before`, sonst
+// ganz oben), das clearEvent() über data-event mit aufräumt.
+function createEventDiv(eventName, cssText, before = null) {
+  const div = document.createElement("div");
+  div.dataset.event = eventName;
+  div.style.cssText = `position:absolute;pointer-events:none;${cssText}`;
+  layer.insertBefore(div, before);
+  return div;
+}
+
+// Kurzes Wackeln über die eigenständige CSS-Eigenschaft "translate" - stört
+// dadurch keine gleichzeitig laufende transform-Animation desselben Elements.
+function shake(eventName, node, { amplitude = 8, durationMs = 260 } = {}) {
+  const a = amplitude;
+  trackAnimation(
+    eventName,
+    node.animate(
+      [
+        { translate: "0 0" },
+        { translate: `${-a}px ${a * 0.5}px` },
+        { translate: `${a * 0.8}px ${-a * 0.6}px` },
+        { translate: `${-a * 0.4}px ${-a * 0.3}px` },
+        { translate: "0 0" },
+      ],
+      { duration: durationMs, easing: "ease-out" }
+    )
+  );
+}
+
+// Vollbild-Blitz über allem.
+function flashScreen(eventName, { color = "#fff", peak = 0.85, durationMs = 160 } = {}) {
+  const flash = createEventDiv(eventName, `inset:0;background:${color};opacity:0`);
+  const player = flash.animate([{ opacity: peak }, { opacity: 0 }], { duration: durationMs, easing: "ease-out" });
+  trackAnimation(eventName, player);
+  player.onfinish = () => flash.remove();
+}
+
+// Blendet alle nodes gemeinsam aus, entfernt sie und meldet das Event als fertig.
+function fadeOutAndRemove(eventName, nodes, fadeOutMs, onComplete) {
+  nodes.forEach((node) => {
+    trackAnimation(
+      eventName,
+      node.animate([{ opacity: getComputedStyle(node).opacity }, { opacity: 0 }], {
+        duration: fadeOutMs,
+        fill: "forwards",
+      })
+    );
+  });
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      nodes.forEach((node) => node.remove());
+      onComplete?.();
+    }, fadeOutMs)
+  );
+}
+
+// "lobotomy_zoom": Bild erscheint normal und zoomt dann in harten Schnitten
+// (ohne Übergang, jeweils mit kurzem Ruck) immer näher auf einen Punkt. Beim
+// letzten Schnitt kippt es in verzerrtes Schwarz-Weiß und eiert nach.
+// Felder (alle optional): zoom_steps (Default [1.6, 2.5, 3.6]), first_step_ms
+// (Zeit bis zum ersten Schnitt, 700), step_ms (Abstand der Schnitte, 550),
+// focus ({x, y} in % des Bildes, Default {x: 50, y: 35}), hold_ms (Nachlauf
+// nach dem letzten Schnitt, 1600), fade_in_ms (150), fade_out_ms (300).
+function runLobotomyZoom(eventName, el, entry, pos, onComplete) {
+  const zoomSteps = entry.zoom_steps ?? [1.6, 2.5, 3.6];
+  const firstStepMs = entry.first_step_ms ?? 700;
+  const stepMs = entry.step_ms ?? 550;
+  const holdMs = entry.hold_ms ?? 1600;
+  const fadeInMs = entry.fade_in_ms ?? 150;
+  const fadeOutMs = entry.fade_out_ms ?? 300;
+  const focus = entry.focus ?? { x: 50, y: 35 };
+
+  // Rahmen schneidet den Zoom auf die Bildfläche zu.
+  const frame = createEventDiv(
+    eventName,
+    `left:${pos.left}px;top:${pos.top}px;width:${pos.width}px;height:${pos.height}px;overflow:hidden;background:#000`,
+    el
+  );
+  frame.appendChild(el);
+  el.style.left = "0";
+  el.style.top = "0";
+  el.style.objectFit = "cover";
+  el.style.transformOrigin = `${focus.x}% ${focus.y}%`;
+
+  trackAnimation(eventName, frame.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fadeInMs, fill: "forwards" }));
+
+  zoomSteps.forEach((scale, i) => {
+    const isLast = i === zoomSteps.length - 1;
+    trackTimer(
+      eventName,
+      setTimeout(() => {
+        // Harter Schnitt: Endgröße sofort setzen, nur ein kurzer Ruck darüber.
+        el.style.transform = `scale(${scale})`;
+        trackAnimation(
+          eventName,
+          el.animate([{ transform: `scale(${scale * 1.12})` }, { transform: `scale(${scale})` }], {
+            duration: 140,
+            easing: "ease-out",
+          })
+        );
+        shake(eventName, frame, { amplitude: isLast ? 12 : 6 });
+        if (!isLast) return;
+        el.style.filter = "grayscale(1) contrast(1.8) brightness(1.1)";
+        trackAnimation(
+          eventName,
+          el.animate(
+            [
+              { transform: `scale(${scale}) skew(0deg, 0deg) rotate(0deg)` },
+              { transform: `scale(${scale * 1.04}) skew(5deg, -2deg) rotate(-2deg)`, offset: 0.33 },
+              { transform: `scale(${scale * 0.98}) skew(-4deg, 3deg) rotate(2deg)`, offset: 0.66 },
+              { transform: `scale(${scale}) skew(0deg, 0deg) rotate(0deg)` },
+            ],
+            { duration: 700, delay: 140, iterations: Infinity, easing: "ease-in-out" }
+          )
+        );
+      }, firstStepMs + i * stepMs)
+    );
+  });
+
+  trackTimer(
+    eventName,
+    setTimeout(
+      () => fadeOutAndRemove(eventName, [frame], fadeOutMs, onComplete),
+      firstStepMs + (zoomSteps.length - 1) * stepMs + holdMs
+    )
+  );
+}
+
+// "vine_boom": Bild knallt schlagartig herein (The-Rock-Augenbraue /
+// Vine-Boom-Meme) - Bildschirm wird dunkel, Bild schwarz-weiß mit hartem
+// Kontrast, ruckartiger Zoom mit Überschwinger, weißer Blitz und Shake, danach
+// schiebt es sich langsam weiter heran. Felder (alle optional): boom_delay_ms
+// (Zeit bis zum Knall, falls der Sound Vorlauf hat, Default 0), zoom (1.25),
+// dim_opacity (Abdunkelung, 0.75), focus ({x, y} in %, Zoom-Mittelpunkt),
+// hold_ms (1600), fade_out_ms (300).
+function runVineBoom(eventName, el, entry, onComplete) {
+  const boomDelayMs = entry.boom_delay_ms ?? 0;
+  const zoom = entry.zoom ?? 1.25;
+  const dimOpacity = entry.dim_opacity ?? 0.75;
+  const holdMs = entry.hold_ms ?? 1600;
+  const fadeOutMs = entry.fade_out_ms ?? 300;
+  const focus = entry.focus ?? { x: 50, y: 40 };
+  const punchMs = 220;
+  const totalMs = punchMs + holdMs;
+
+  const backdrop = createEventDiv(eventName, "inset:0;background:#000;opacity:0", el);
+  el.style.opacity = "0";
+  el.style.transformOrigin = `${focus.x}% ${focus.y}%`;
+
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      backdrop.style.opacity = String(dimOpacity);
+      el.style.opacity = "1";
+      el.style.filter = "grayscale(1) contrast(1.8) brightness(1.1)";
+      trackAnimation(
+        eventName,
+        el.animate(
+          [
+            { transform: `scale(${zoom * 1.4})` },
+            { transform: `scale(${zoom * 0.94})`, offset: (punchMs * 0.5) / totalMs },
+            { transform: `scale(${zoom})`, offset: punchMs / totalMs },
+            { transform: `scale(${zoom * 1.08})` },
+          ],
+          { duration: totalMs, fill: "forwards" }
+        )
+      );
+      shake(eventName, el, { amplitude: 14, durationMs: 320 });
+      flashScreen(eventName);
+      trackTimer(
+        eventName,
+        setTimeout(() => fadeOutAndRemove(eventName, [backdrop, el], fadeOutMs, onComplete), totalMs)
+      );
+    }, boomDelayMs)
+  );
+}
+
+// "deep_fried": Deep-Fried-Meme. Das Bild pulsiert im Takt zwischen
+// übersättigt und völlig verbrannt, auf den Augen blitzen Lens-Flares, jeder
+// Schlag schüttelt das Bild (Bass-Shake), optional poppen Sticker rundherum
+// auf und der Bildschirm dahinter wird mitfrittiert. Felder (alle optional):
+// duration_ms (4000), beat_ms (400), fade_in_ms (250), fade_out_ms (400),
+// flares (Liste von {x, y} in % des Bildes, Default zwei Augen), flare_size_px
+// (120), stickers (Liste von Bild-Pfaden), sticker_count (6), tint (Farbstich,
+// "#ff6a00"), fry_screen (Bildschirm dahinter mitfrittieren, Default true -
+// kostet per backdrop-filter etwas GPU, bei Rucklern auf dem Pi abschalten).
+const DEEP_FRIED_FLARES = [
+  { x: 38, y: 40 },
+  { x: 62, y: 40 },
+];
+
+function runDeepFried(eventName, el, entry, pos, onComplete) {
+  const durationMs = entry.duration_ms ?? 4000;
+  const beatMs = entry.beat_ms ?? 400;
+  const fadeInMs = entry.fade_in_ms ?? 250;
+  const fadeOutMs = entry.fade_out_ms ?? 400;
+  const flares = entry.flares ?? DEEP_FRIED_FLARES;
+  const flareSize = entry.flare_size_px ?? 120;
+  const stickers = entry.stickers ?? [];
+  const stickerCount = stickers.length > 0 ? entry.sticker_count ?? 6 : 0;
+  const tint = entry.tint ?? "#ff6a00";
+  const { width: W, height: H } = DISPLAY;
+  const nodes = [];
+
+  if (entry.fry_screen !== false) {
+    const fry = createEventDiv(eventName, "inset:0;opacity:0;backdrop-filter:saturate(3) contrast(1.4)", el);
+    trackAnimation(eventName, fry.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fadeInMs, fill: "forwards" }));
+    nodes.push(fry);
+  }
+
+  const wrapper = createEventDiv(
+    eventName,
+    `left:${pos.left}px;top:${pos.top}px;width:${pos.width}px;height:${pos.height}px;isolation:isolate`,
+    el
+  );
+  wrapper.appendChild(el);
+  el.style.left = "0";
+  el.style.top = "0";
+  el.style.objectFit = "cover";
+  nodes.push(wrapper);
+
+  // Farbstich über dem Bild (Overlay-Mischung = verbrannter Orangeton).
+  const tintEl = document.createElement("div");
+  tintEl.style.cssText = `position:absolute;inset:0;background:${tint};mix-blend-mode:overlay;opacity:0.45`;
+  wrapper.appendChild(tintEl);
+
+  flares.forEach(({ x, y }, i) => {
+    const flare = document.createElement("div");
+    flare.style.cssText =
+      `position:absolute;left:${(x / 100) * pos.width - flareSize / 2}px;top:${(y / 100) * pos.height - flareSize / 2}px;` +
+      `width:${flareSize}px;height:${flareSize}px;mix-blend-mode:screen;background:` +
+      "radial-gradient(circle, #fff 0 5%, rgba(255,235,190,0.95) 9%, rgba(255,70,30,0.6) 22%, rgba(255,70,30,0) 50%)," +
+      "linear-gradient(90deg, rgba(255,210,170,0) 0%, rgba(255,230,200,0.95) 50%, rgba(255,210,170,0) 100%) center / 100% 5px no-repeat," +
+      "linear-gradient(0deg, rgba(255,210,170,0) 0%, rgba(255,230,200,0.95) 50%, rgba(255,210,170,0) 100%) center / 5px 100% no-repeat";
+    wrapper.appendChild(flare);
+    trackAnimation(
+      eventName,
+      flare.animate(
+        [
+          { transform: "scale(1.3) rotate(0deg)", opacity: 1 },
+          { transform: "scale(0.7) rotate(45deg)", opacity: 0.7, offset: 0.5 },
+          { transform: "scale(1.3) rotate(90deg)", opacity: 1 },
+        ],
+        { duration: beatMs * 2, iterations: Infinity, delay: -i * beatMs * 0.5 }
+      )
+    );
+  });
+
+  trackAnimation(
+    eventName,
+    wrapper.animate(
+      [
+        { transform: "scale(0.6)", opacity: 0 },
+        { transform: "scale(1)", opacity: 1 },
+      ],
+      { duration: fadeInMs, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", fill: "forwards" }
+    )
+  );
+  // Auf jedem Schlag: voll verbrannt + größer, dann zurück auf "nur" übersättigt.
+  trackAnimation(
+    eventName,
+    el.animate(
+      [
+        { filter: "saturate(7) contrast(2.6) brightness(1.25)", transform: "scale(1.06)" },
+        { filter: "saturate(3) contrast(1.6) brightness(1.05)", transform: "scale(1)", offset: 0.45 },
+        { filter: "saturate(3) contrast(1.6) brightness(1.05)", transform: "scale(1)" },
+      ],
+      { duration: beatMs, iterations: Infinity, easing: "ease-out" }
+    )
+  );
+  trackAnimation(
+    eventName,
+    wrapper.animate(
+      [
+        { translate: "0 0" },
+        { translate: "-7px 4px", offset: 0.08 },
+        { translate: "6px -4px", offset: 0.16 },
+        { translate: "-3px 2px", offset: 0.24 },
+        { translate: "0 0", offset: 0.32 },
+        { translate: "0 0" },
+      ],
+      { duration: beatMs, iterations: Infinity }
+    )
+  );
+
+  for (let i = 0; i < stickerCount; i += 1) {
+    const size = 70 + Math.random() * 50;
+    const rot = Math.random() * 60 - 30;
+    const sticker = document.createElement("img");
+    sticker.src = stickers[i % stickers.length];
+    sticker.dataset.event = eventName;
+    sticker.style.cssText =
+      `position:absolute;pointer-events:none;object-fit:contain;width:${size}px;height:${size}px;opacity:0;` +
+      `left:${Math.random() * (W - size)}px;top:${Math.random() * (H - size)}px;filter:saturate(4) contrast(1.8)`;
+    layer.appendChild(sticker);
+    nodes.push(sticker);
+    trackAnimation(
+      eventName,
+      sticker.animate(
+        [
+          { transform: `rotate(${rot}deg) scale(0)`, opacity: 1 },
+          { transform: `rotate(${rot}deg) scale(1.3)`, opacity: 1, offset: 0.6 },
+          { transform: `rotate(${rot}deg) scale(1)`, opacity: 1 },
+        ],
+        {
+          duration: 200,
+          delay: Math.min(fadeInMs + (i * beatMs) / 2, durationMs - fadeOutMs - 200),
+          easing: "ease-out",
+          fill: "forwards",
+        }
+      )
+    );
+  }
+
+  trackTimer(
+    eventName,
+    setTimeout(() => fadeOutAndRemove(eventName, nodes, fadeOutMs, onComplete), Math.max(0, durationMs - fadeOutMs))
+  );
+}
+
+// "pharaoh_verdict": Book-of-Ra-Urteil. Hinter dem Bild geht ein goldener
+// Strahlenkranz auf, das Bild (z.B. egypt_oleg.png) steigt aus dem Boden
+// empor, darunter leuchten Hieroglyphen nacheinander auf und zum Schluss
+// knallt ein Urteils-Stempel ins Bild (bei "down" wird das Bild dabei grau).
+// Felder (alle optional): verdict ("up" = Gewinn, "down" = Verlust, Default
+// "up"), verdict_text (Default "WÜRDIG" / "UNWÜRDIG"), verdict_sound (Default
+// "gong", false = stumm), glyphs (String aus Hieroglyphen), rise_ms (800),
+// glyph_step_ms (120), verdict_delay_ms (Pause nach den Hieroglyphen, 250),
+// hold_ms (1500), fade_out_ms (400).
+const PHARAOH_GLYPHS = "𓂀𓋹𓆣𓇳𓁹𓊽𓃭";
+
+function runPharaohVerdict(eventName, el, entry, pos, onComplete) {
+  const isUp = (entry.verdict ?? "up") !== "down";
+  const verdictText = entry.verdict_text ?? (isUp ? "WÜRDIG" : "UNWÜRDIG");
+  const verdictColor = isUp ? "#ffd766" : "#ff3b30";
+  const verdictSound = entry.verdict_sound ?? "gong";
+  const glyphs = [...(entry.glyphs ?? PHARAOH_GLYPHS)];
+  const riseMs = entry.rise_ms ?? 800;
+  const glyphStepMs = entry.glyph_step_ms ?? 120;
+  const verdictDelayMs = entry.verdict_delay_ms ?? 250;
+  const holdMs = entry.hold_ms ?? 1500;
+  const fadeOutMs = entry.fade_out_ms ?? 400;
+  const stampMs = 220;
+  const { width: W, height: H } = DISPLAY;
+  const cx = pos.left + pos.width / 2;
+  const cy = pos.top + pos.height / 2;
+  const verdictAt = riseMs + glyphs.length * glyphStepMs + verdictDelayMs;
+
+  const backdrop = createEventDiv(
+    eventName,
+    `inset:0;opacity:0;background:radial-gradient(ellipse at ${cx}px ${cy}px, rgba(90,60,10,0.85) 0%, rgba(15,8,0,0.92) 70%)`,
+    el
+  );
+
+  const sunSize = Math.max(pos.width, pos.height) * 1.8;
+  const sunMask = "radial-gradient(circle, #000 25%, transparent 70%)";
+  const sun = createEventDiv(
+    eventName,
+    `left:${cx - sunSize / 2}px;top:${cy - sunSize / 2}px;width:${sunSize}px;height:${sunSize}px;border-radius:50%;opacity:0;` +
+      "background:repeating-conic-gradient(from 0deg, rgba(255,210,90,0.85) 0deg 7deg, rgba(255,210,90,0) 7deg 20deg);" +
+      `-webkit-mask-image:${sunMask};mask-image:${sunMask}`,
+    el
+  );
+
+  // "Boden": schneidet das Bild unten ab, damit es aus dem Nichts aufsteigt.
+  const ground = createEventDiv(
+    eventName,
+    `left:${pos.left}px;top:0;width:${pos.width}px;height:${pos.top + pos.height}px;overflow:hidden`,
+    el
+  );
+  ground.appendChild(el);
+  el.style.left = "0";
+
+  const glyphRow = createEventDiv(
+    eventName,
+    `left:0;width:${W}px;top:${Math.min(pos.top + pos.height + 6, H - 56)}px;height:50px;display:flex;justify-content:center;gap:10px;` +
+      'font-family:"Noto Sans Egyptian Hieroglyphs", serif;font-size:42px;line-height:50px'
+  );
+
+  const stamp = createEventDiv(
+    eventName,
+    `left:${cx - 170}px;top:${pos.top + pos.height * 0.55}px;width:340px;height:80px;display:flex;align-items:center;justify-content:center;opacity:0;` +
+      `font-family:"Cinzel", serif;font-weight:900;font-size:${verdictText.length > 7 ? 40 : 50}px;letter-spacing:0.06em;color:${verdictColor};` +
+      `border:5px double ${verdictColor};border-radius:10px;background:rgba(20,10,0,0.6);text-shadow:0 0 14px ${verdictColor}`
+  );
+  stamp.textContent = verdictText;
+
+  trackAnimation(eventName, backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.min(400, riseMs), fill: "forwards" }));
+  trackAnimation(
+    eventName,
+    sun.animate(
+      [
+        { opacity: 0, transform: "scale(0.3)" },
+        { opacity: 1, transform: "scale(1)" },
+      ],
+      { duration: riseMs, easing: "ease-out", fill: "forwards" }
+    )
+  );
+  trackAnimation(eventName, sun.animate([{ rotate: "0deg" }, { rotate: "360deg" }], { duration: 12000, iterations: Infinity }));
+  trackAnimation(
+    eventName,
+    el.animate(
+      [
+        { transform: `translateY(${pos.height + 20}px)` },
+        { transform: "translateY(-4%)", offset: 0.85 },
+        { transform: "translateY(0)" },
+      ],
+      { duration: riseMs, easing: "ease-out", fill: "forwards" }
+    )
+  );
+  shake(eventName, ground, { amplitude: 3, durationMs: riseMs });
+
+  glyphs.forEach((glyph, i) => {
+    const span = document.createElement("span");
+    span.textContent = glyph;
+    span.style.cssText = "display:inline-block;color:#5a4214";
+    glyphRow.appendChild(span);
+    trackAnimation(
+      eventName,
+      span.animate(
+        [
+          { color: "#5a4214", textShadow: "none", transform: "scale(1)" },
+          { color: "#fff6c8", textShadow: "0 0 12px #ffcc33, 0 0 24px #ff9900", transform: "scale(1.4)", offset: 0.4 },
+          { color: "#ffd766", textShadow: "0 0 10px #ffb300", transform: "scale(1)" },
+        ],
+        { duration: 350, delay: riseMs + i * glyphStepMs, easing: "ease-out", fill: "forwards" }
+      )
+    );
+  });
+
+  trackAnimation(
+    eventName,
+    stamp.animate(
+      [
+        { opacity: 0, transform: "rotate(-10deg) scale(3)" },
+        { opacity: 1, transform: "rotate(-10deg) scale(0.92)", offset: 0.75 },
+        { opacity: 1, transform: "rotate(-10deg) scale(1)" },
+      ],
+      { duration: stampMs, delay: verdictAt, easing: "ease-in", fill: "forwards" }
+    )
+  );
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      if (verdictSound) playTrackedSounds(eventName, verdictSound);
+      if (!isUp) {
+        el.style.filter = "grayscale(1) brightness(0.8)";
+        sun.style.filter = "hue-rotate(-45deg) saturate(2)";
+      }
+      shake(eventName, ground, { amplitude: 10, durationMs: 300 });
+      flashScreen(eventName, { color: verdictColor, peak: 0.45, durationMs: 250 });
+    }, verdictAt + stampMs * 0.75)
+  );
+
+  trackTimer(
+    eventName,
+    setTimeout(
+      () => fadeOutAndRemove(eventName, [backdrop, sun, ground, glyphRow, stamp], fadeOutMs, onComplete),
+      verdictAt + stampMs + holdMs
+    )
+  );
+}
+
+// "peek": Kopf lugt vom Bildschirmrand herein ("Are ya lost?"), wackelt sich
+// umschauend hin und her und verschwindet wieder. Von "position" zählen nur
+// width/height sowie top (Seite left/right) bzw. left (Seite bottom).
+// Felder (alle optional): side ("left", "right", "bottom" oder "random",
+// Default "random"), peek (sichtbarer Anteil des Bildes 0-1, 0.6), tilt
+// (Neigung in Grad, 18), wiggle_deg (7), wiggle_ms (Dauer einer
+// Wackel-Schwingung, 600), peek_in_ms (450), hold_ms (2400), peek_out_ms (350).
+function runPeek(eventName, el, entry, pos, onComplete) {
+  const sides = ["left", "right", "bottom"];
+  const side = sides.includes(entry.side) ? entry.side : sides[Math.floor(Math.random() * sides.length)];
+  const peek = entry.peek ?? 0.6;
+  const tilt = entry.tilt ?? 18;
+  const wiggleDeg = entry.wiggle_deg ?? 7;
+  const wiggleMs = entry.wiggle_ms ?? 600;
+  const peekInMs = entry.peek_in_ms ?? 450;
+  const holdMs = entry.hold_ms ?? 2400;
+  const peekOutMs = entry.peek_out_ms ?? 350;
+  const { width: W, height: H } = DISPLAY;
+  const { width: w, height: h } = pos;
+
+  let left = pos.left;
+  let top = pos.top;
+  let hidden;
+  let rot = 0;
+  if (side === "left") {
+    left = -w * (1 - peek);
+    hidden = `${-w * peek - 30}px, 0px`;
+    rot = tilt;
+    el.style.transformOrigin = "0% 50%";
+  } else if (side === "right") {
+    left = W - w * peek;
+    hidden = `${w * peek + 30}px, 0px`;
+    rot = -tilt;
+    el.style.transformOrigin = "100% 50%";
+  } else {
+    top = H - h * peek;
+    hidden = `0px, ${h * peek + 30}px`;
+    el.style.transformOrigin = "50% 100%";
+  }
+  el.style.left = `${left}px`;
+  el.style.top = `${top}px`;
+
+  const at = (translate, deg) => `translate(${translate}) rotate(${deg}deg)`;
+  trackAnimation(
+    eventName,
+    el.animate([{ transform: at(hidden, rot) }, { transform: at("0px, 0px", rot) }], {
+      duration: peekInMs,
+      easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      fill: "forwards",
+    })
+  );
+  const wiggleIterations = Math.max(1, Math.round(holdMs / wiggleMs));
+  trackAnimation(
+    eventName,
+    el.animate(
+      [
+        { transform: at("0px, 0px", rot) },
+        { transform: at("0px, 0px", rot + wiggleDeg), offset: 0.25 },
+        { transform: at("0px, 0px", rot - wiggleDeg), offset: 0.75 },
+        { transform: at("0px, 0px", rot) },
+      ],
+      { duration: wiggleMs, delay: peekInMs, iterations: wiggleIterations, easing: "ease-in-out" }
+    )
+  );
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      const outPlayer = el.animate([{ transform: at("0px, 0px", rot) }, { transform: at(hidden, rot) }], {
+        duration: peekOutMs,
+        easing: "ease-in",
+        fill: "forwards",
+      });
+      trackAnimation(eventName, outPlayer);
+      outPlayer.onfinish = () => {
+        el.remove();
+        onComplete?.();
+      };
+    }, peekInMs + wiggleIterations * wiggleMs)
+  );
+}
+
+// "error_spam": Windows-XP-Fehlermeldungen stapeln sich in immer schnellerer
+// Folge kaskadenartig über den Bildschirm (jede mit eigenem Fehler-Ton), am
+// Ende folgt optional ein Bluescreen. Braucht kein Bild ("type": "text").
+// Felder (alle optional): count (14), interval_ms (Abstand der ersten
+// Fenster, wird immer kürzer, 260), min_interval_ms (60), title (Fenstertitel),
+// messages (Liste, zufällig gewählt), popup_sound (Default "win_error", false =
+// stumm), hold_ms (Stand nach dem letzten Fenster, 700), bluescreen (true),
+// bluescreen_ms (1600), bluescreen_text, stop_code, fade_out_ms (250).
+const ERROR_MESSAGES = [
+  "Kontostand.exe reagiert nicht.",
+  "Fehler 404: Gewinn nicht gefunden.",
+  "Nicht genügend Guthaben. Bitte Niere einlegen.",
+  "Das Programm Hoffnung.exe wurde unerwartet beendet.",
+  "Glück.dll konnte nicht geladen werden.",
+  "Ein schwerwiegender Fehler ist aufgetreten: Du.",
+  "Warnung: Pechsträhne erkannt. Trotzdem weiterspielen?",
+  "Portemonnaie ist leer. Vorgang abgebrochen.",
+];
+
+function createErrorPopup(eventName, title, message, x, y, width) {
+  const popup = createEventDiv(
+    eventName,
+    `left:${x}px;top:${y}px;width:${width}px;background:#ece9d8;border:2px solid #0831d9;border-top:none;border-radius:8px 8px 0 0;` +
+      'box-shadow:3px 4px 10px rgba(0,0,0,0.45);font-family:Tahoma, "Segoe UI", Arial, sans-serif;font-size:12px;color:#000;overflow:hidden'
+  );
+
+  const bar = document.createElement("div");
+  bar.style.cssText =
+    "height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 4px 0 8px;" +
+    "color:#fff;font-weight:bold;font-size:13px;text-shadow:1px 1px #0a1e6e;" +
+    "background:linear-gradient(180deg, #0997ff 0%, #0053ee 12%, #0050ee 85%, #06f 100%)";
+  const barTitle = document.createElement("span");
+  barTitle.textContent = title;
+  const close = document.createElement("span");
+  close.textContent = "×";
+  close.style.cssText =
+    "width:21px;height:21px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;border-radius:3px;" +
+    "background:linear-gradient(180deg, #e67b5c 0%, #d0461d 100%);font-size:16px";
+  bar.append(barTitle, close);
+
+  const body = document.createElement("div");
+  body.style.cssText = "display:flex;align-items:center;gap:12px;padding:14px 12px 10px";
+  const icon = document.createElement("div");
+  icon.textContent = "×";
+  icon.style.cssText =
+    "flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;" +
+    "color:#fff;font-weight:bold;font-size:24px;box-shadow:0 1px 2px rgba(0,0,0,0.4);" +
+    "background:radial-gradient(circle at 35% 30%, #ff8a80 0%, #e53935 45%, #b71c1c 100%)";
+  const text = document.createElement("div");
+  text.textContent = message;
+  body.append(icon, text);
+
+  const buttons = document.createElement("div");
+  buttons.style.cssText = "display:flex;justify-content:center;padding:0 0 10px";
+  const ok = document.createElement("div");
+  ok.textContent = "OK";
+  ok.style.cssText =
+    "width:75px;height:21px;display:flex;align-items:center;justify-content:center;border:1px solid #003c74;border-radius:3px;" +
+    "background:linear-gradient(180deg, #fff 0%, #ece9d8 100%)";
+  buttons.appendChild(ok);
+
+  popup.append(bar, body, buttons);
+  return popup;
+}
+
+function runErrorSpam(eventName, el, entry, onComplete) {
+  el.remove();
+
+  const count = entry.count ?? 14;
+  const intervalMs = entry.interval_ms ?? 260;
+  const minIntervalMs = entry.min_interval_ms ?? 60;
+  const title = entry.title ?? "Slotmaschine.exe";
+  const messages = entry.messages ?? ERROR_MESSAGES;
+  const popupSound = entry.popup_sound ?? "win_error";
+  const holdMs = entry.hold_ms ?? 700;
+  const withBluescreen = entry.bluescreen !== false;
+  const bluescreenMs = entry.bluescreen_ms ?? 1600;
+  const fadeOutMs = entry.fade_out_ms ?? 250;
+  const { width: W, height: H } = DISPLAY;
+  const popW = 300;
+  const popH = 130;
+  const popups = [];
+
+  // Kaskade wie bei echten Fehler-Lawinen: jedes Fenster leicht nach rechts
+  // unten versetzt, am Rand geht es an einer neuen Zufallsstelle weiter.
+  let x = W;
+  let y = H;
+  let at = 0;
+  for (let i = 0; i < count; i += 1) {
+    trackTimer(
+      eventName,
+      setTimeout(() => {
+        x += 22;
+        y += 22;
+        if (x + popW > W || y + popH > H) {
+          x = Math.random() * (W - popW - 120);
+          y = Math.random() * (H - popH - 120);
+        }
+        const message = messages[Math.floor(Math.random() * messages.length)];
+        const popup = createErrorPopup(eventName, title, message, x, y, popW);
+        popups.push(popup);
+        trackAnimation(
+          eventName,
+          popup.animate(
+            [
+              { transform: "scale(0.85)", opacity: 0 },
+              { transform: "scale(1)", opacity: 1 },
+            ],
+            { duration: 90, easing: "ease-out" }
+          )
+        );
+        if (popupSound) playTrackedSounds(eventName, popupSound);
+      }, at)
+    );
+    if (i < count - 1) at += Math.max(minIntervalMs, intervalMs * 0.82 ** i);
+  }
+
+  trackTimer(
+    eventName,
+    setTimeout(() => {
+      if (!withBluescreen) {
+        fadeOutAndRemove(eventName, popups, fadeOutMs, onComplete);
+        return;
+      }
+      popups.forEach((popup) => popup.remove());
+      const bsod = createBluescreen(eventName, entry, bluescreenMs);
+      trackTimer(eventName, setTimeout(() => fadeOutAndRemove(eventName, [bsod], fadeOutMs, onComplete), bluescreenMs));
+    }, at + holdMs)
+  );
+}
+
+// Windows-10-Bluescreen, dessen Prozentanzeige über durationMs auf 100% läuft.
+function createBluescreen(eventName, entry, durationMs) {
+  const bsod = createEventDiv(
+    eventName,
+    'inset:0;background:#0078d7;color:#fff;font-family:"Segoe UI", Arial, sans-serif;padding:50px 80px;box-sizing:border-box'
+  );
+  const face = document.createElement("div");
+  face.textContent = ":(";
+  face.style.cssText = "font-size:110px;line-height:1";
+  const text = document.createElement("div");
+  text.textContent =
+    entry.bluescreen_text ??
+    "Dein Kontostand ist auf ein Problem gestoßen und muss neu aufgeladen werden. Wir sammeln nur einige Fehlerinformationen (und dein Geld).";
+  text.style.cssText = "font-size:21px;line-height:1.35;margin-top:24px;max-width:620px";
+  const progress = document.createElement("div");
+  progress.textContent = "0% abgeschlossen";
+  progress.style.cssText = "font-size:21px;margin-top:18px";
+  const stopCode = document.createElement("div");
+  stopCode.textContent = `Stoppcode: ${entry.stop_code ?? "GELD_NOT_FOUND"}`;
+  stopCode.style.cssText = "font-size:13px;margin-top:36px;opacity:0.85";
+  bsod.append(face, text, progress, stopCode);
+
+  // Ruckelig hochzählen wie das Original (erst langsam, dann schnell).
+  const steps = 12;
+  for (let k = 1; k <= steps; k += 1) {
+    trackTimer(
+      eventName,
+      setTimeout(() => {
+        progress.textContent = `${Math.round((k / steps) ** 2 * 100)}% abgeschlossen`;
+      }, (k / steps) * durationMs * 0.9)
+    );
+  }
+  return bsod;
+}
+
+// "dramatic_zoom": Dramatic-Chipmunk-Reveal für einen Multiplikator. Der
+// Bildschirm wird schwarz, ein verdecktes "x?" zoomt in drei harten Stufen
+// heran ("dun - dun - DUUUN", passend zum Sound "dramatic"); auf der letzten
+// Stufe wird der Wert (context.value, Fallback entry.value, sonst 2) mit rotem
+// Glühen, Blitz und Shake aufgedeckt. "type": "text" - der Text kommt aus der
+// Animation. Felder (alle optional): step_ms (Abstand der Stufen, 450), zooms
+// (Größe je Stufe, Default [0.8, 1.3, 2.1]), hold_ms (1800), fade_in_ms (150),
+// fade_out_ms (350), label_format ("x{value}"), hidden_label (Default "x?"),
+// font_size_px (110), color, reveal_color, glow_color.
+function runDramaticZoom(eventName, el, entry, onComplete, context) {
+  const value = context?.value ?? entry.value ?? 2;
+  const stepMs = entry.step_ms ?? 450;
+  const zooms = entry.zooms ?? [0.8, 1.3, 2.1];
+  const holdMs = entry.hold_ms ?? 1800;
+  const fadeInMs = entry.fade_in_ms ?? 150;
+  const fadeOutMs = entry.fade_out_ms ?? 350;
+  const labelFormat = entry.label_format ?? "x{value}";
+  const hiddenLabel = entry.hidden_label ?? labelFormat.replace("{value}", "?");
+  const revealColor = entry.reveal_color ?? "#ff2a2a";
+  const glowColor = entry.glow_color ?? "#ff0000";
+
+  const backdrop = createEventDiv(eventName, "inset:0;background:#000;opacity:0", el);
+  // Vignette über dem Text, die sich mit jeder Stufe weiter zuzieht.
+  const vignette = createEventDiv(
+    eventName,
+    "inset:0;opacity:0;background:radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(0,0,0,0.95) 75%)"
+  );
+
+  el.textContent = hiddenLabel;
+  el.style.fontSize = `${entry.font_size_px ?? 110}px`;
+  el.style.color = entry.color ?? "#d8d8d8";
+  el.style.textShadow = "0 6px 8px rgba(0,0,0,0.7)";
+  el.style.opacity = "0";
+
+  trackAnimation(eventName, backdrop.animate([{ opacity: 0 }, { opacity: 0.92 }], { duration: fadeInMs, fill: "forwards" }));
+
+  zooms.forEach((scale, i) => {
+    const isLast = i === zooms.length - 1;
+    trackTimer(
+      eventName,
+      setTimeout(() => {
+        el.style.opacity = "1";
+        el.style.transform = `scale(${scale})`;
+        vignette.style.opacity = "1";
+        vignette.style.transform = `scale(${1.6 - (0.6 * i) / Math.max(1, zooms.length - 1)})`;
+        trackAnimation(
+          eventName,
+          el.animate([{ transform: `scale(${scale * 0.85})` }, { transform: `scale(${scale})` }], {
+            duration: 90,
+            easing: "ease-out",
+          })
+        );
+        if (!isLast) {
+          shake(eventName, el, { amplitude: 5 });
+          return;
+        }
+        el.textContent = labelFormat.replace("{value}", value);
+        el.style.color = revealColor;
+        el.style.textShadow = `0 0 20px ${glowColor}, 0 0 50px ${glowColor}, 0 6px 8px rgba(0,0,0,0.7)`;
+        flashScreen(eventName, { color: revealColor, peak: 0.5, durationMs: 250 });
+        shake(eventName, el, { amplitude: 16, durationMs: 400 });
+        // Während des Haltens langsam weiter heranzoomen.
+        trackAnimation(
+          eventName,
+          el.animate([{ transform: `scale(${scale})` }, { transform: `scale(${scale * 1.12})` }], {
+            duration: holdMs,
+            delay: 90,
+            fill: "forwards",
+          })
+        );
+      }, i * stepMs)
+    );
+  });
+
+  trackTimer(
+    eventName,
+    setTimeout(
+      () => fadeOutAndRemove(eventName, [backdrop, el, vignette], fadeOutMs, onComplete),
+      (zooms.length - 1) * stepMs + holdMs
+    )
+  );
 }
 
 // Zeigt dasselbe Event einmal pro Eintrag in `contexts` hintereinander -

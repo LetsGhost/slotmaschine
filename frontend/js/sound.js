@@ -57,6 +57,30 @@ const SOUND_FILES = {
   basti_sieben: "assets/audio/animations/multiplier/success_basti-sieben.wav",
   // ~2.07s, laute Phase 1.1-1.8s = Reveal der "chest_reveal"-Animation.
   fart_2: "assets/audio/animations/lose/fail_fart_2.wav",
+  // Erste 4.5s von results/lose/fail_lobotomy.mp3, letzte 400ms ausgeblendet -
+  // so lang wie die "lobotomy_zoom"-Animation (700 + 2x550 + 1600 + 300).
+  lobotomy: "assets/audio/animations/lose/lobotomy.mp3",
+  // Kopie von results/lose/fail_boom.mp3 - Knall liegt direkt am Anfang,
+  // passend zu boom_delay_ms 0 der "vine_boom"-Animation.
+  vine_boom: "assets/audio/animations/lose/vine_boom.mp3",
+  // Erste 3.6s von results/lose/freesound_community-are-ya-lost-yet-haha-80165.mp3,
+  // letzte 400ms ausgeblendet - so lang wie die "peek"-Animation.
+  are_ya_lost: "assets/audio/animations/lose/are_ya_lost.mp3",
+  // Kopie von results/jackpot/success_omg.mp3 (Einstieg der "deep_fried"-Animation).
+  omg: "assets/audio/animations/jackpot/omg.mp3",
+};
+
+// Per Web Audio erzeugte Sounds (kein Asset nötig): werden beim Start einmal
+// offline gerendert und liegen danach wie normale Sounds in `buffers` - also
+// per Name aus event_media_map.json abspielbar. durationS = Länge des Buffers.
+const SYNTH_SOUNDS = {
+  // "Dun - dun - DUUUN" (Dramatic Chipmunk), Schläge bei 0 / 0.45 / 0.9s -
+  // passend zu step_ms 450 der "dramatic_zoom"-Animation.
+  dramatic: { durationS: 3, render: renderDramatic },
+  // Windows-artiger Fehler-Ton, pro Fenster der "error_spam"-Animation.
+  win_error: { durationS: 0.6, render: renderWinError },
+  // Tiefer Gong für den Urteils-Stempel der "pharaoh_verdict"-Animation.
+  gong: { durationS: 3.5, render: renderGong },
 };
 
 // Startversatz in Sekunden, um Stille am Dateianfang zu überspringen - der
@@ -94,17 +118,22 @@ const LOOP_REGIONS = {
 const MUSIC_TRACKS = {
   merkur_loop: "assets/audio/music/merkur_loop.ogg",
   scooter: "assets/audio/music/scooter_move_your_ass.ogg",
+  // Original (mp4 mit Video) in assets_originals/audio, hier nur die Tonspur.
+  into_the_void: "assets/audio/music/into_the_void.ogg",
 };
 
 // Lautstärke (0-1) pro Musiktrack.
 const MUSIC_VOLUMES = {
   merkur_loop: 0.4,
   scooter: 0.4,
+  // ~14dB lauter gemastert als scooter (Mittel -8.5dB statt -22.4dB) - daher
+  // leiser, damit die Playlist gleichmäßig laut bleibt.
+  into_the_void: 0.08,
 };
 
 // Hintergrund-Playlist nach dem Ladebildschirm: Tracks laufen nacheinander
 // und fangen danach wieder vorne an (leer = keine Musik).
-const BACKGROUND_PLAYLIST = ["merkur_loop", "scooter"];
+const BACKGROUND_PLAYLIST = ["merkur_loop", "scooter", "into_the_void"];
 
 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContextClass();
@@ -167,7 +196,88 @@ export async function preloadSounds() {
   await Promise.all([
     ...Object.entries(SOUND_FILES).map(([name, url]) => loadBuffer(name, url)),
     loadSoundPools(),
+    renderSynthSounds(),
   ]);
+}
+
+// --- Synthetisierte Sounds (SYNTH_SOUNDS) --------------------------------
+
+async function renderSynthSounds() {
+  await Promise.all(
+    Object.entries(SYNTH_SOUNDS).map(async ([name, { durationS, render }]) => {
+      try {
+        const ctx = new OfflineAudioContext(1, Math.ceil(durationS * audioCtx.sampleRate), audioCtx.sampleRate);
+        render(ctx);
+        buffers.set(name, await ctx.startRendering());
+      } catch (err) {
+        console.warn(`Synth-Sound "${name}" konnte nicht erzeugt werden:`, err.message);
+      }
+    })
+  );
+}
+
+// Ein Akkord (mehrere Oszillatoren) mit Hüllkurve durch einen Tiefpass.
+// release = Ausklingzeit am Ende, vibrato = Tonhöhenschwankung (Anteil der Frequenz).
+function synthNote(ctx, { freqs, start, duration, type = "sawtooth", peak = 0.5, attack = 0.01, release = 0.3, cutoff = 1800, vibrato = 0 }) {
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = cutoff;
+  const gain = ctx.createGain();
+  filter.connect(gain).connect(ctx.destination);
+  const level = peak / freqs.length;
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(level, start + attack);
+  gain.gain.setValueAtTime(level, Math.max(start + attack, start + duration - release));
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  freqs.forEach((freq) => {
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.frequency.value = freq;
+    if (vibrato) {
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 5.5;
+      const depth = ctx.createGain();
+      depth.gain.value = freq * vibrato;
+      lfo.connect(depth).connect(osc.frequency);
+      lfo.start(start);
+      lfo.stop(start + duration);
+    }
+    osc.connect(filter);
+    osc.start(start);
+    osc.stop(start + duration);
+  });
+}
+
+// G - F# - Es (Moll, absteigend), der letzte Schlag lang mit Vibrato.
+function renderDramatic(ctx) {
+  synthNote(ctx, { freqs: [98, 196, 293.7, 392], start: 0, duration: 0.38, release: 0.12 });
+  synthNote(ctx, { freqs: [92.5, 185, 277.2, 370], start: 0.45, duration: 0.38, release: 0.12 });
+  synthNote(ctx, { freqs: [77.8, 155.6, 233.1, 311.1], start: 0.9, duration: 2.05, release: 1.2, vibrato: 0.012, peak: 0.6 });
+}
+
+// Zwei kurze, absteigende Glockentöne.
+function renderWinError(ctx) {
+  synthNote(ctx, { freqs: [659.3, 987.8], start: 0, duration: 0.3, type: "triangle", peak: 0.35, attack: 0.005, release: 0.28, cutoff: 6000 });
+  synthNote(ctx, { freqs: [440, 659.3], start: 0.11, duration: 0.45, type: "triangle", peak: 0.35, attack: 0.005, release: 0.43, cutoff: 6000 });
+}
+
+// Unharmonische Sinus-Teiltöne mit langem Ausklang plus kurzem Rausch-Schlag.
+function renderGong(ctx) {
+  [1, 1.48, 2.02, 2.74, 3.76].forEach((ratio, i) => {
+    synthNote(ctx, { freqs: [70 * ratio], start: 0, duration: 3.4 - i * 0.5, type: "sine", peak: 0.45 / (i + 1), attack: 0.01, release: 3.3 - i * 0.5, cutoff: 8000 });
+  });
+  const noise = ctx.createBuffer(1, Math.ceil(0.15 * ctx.sampleRate), ctx.sampleRate);
+  const data = noise.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  const source = ctx.createBufferSource();
+  source.buffer = noise;
+  const band = ctx.createBiquadFilter();
+  band.type = "bandpass";
+  band.frequency.value = 400;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.3;
+  source.connect(band).connect(gain).connect(ctx.destination);
+  source.start(0);
 }
 
 function resumeContext() {

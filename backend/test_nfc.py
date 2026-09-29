@@ -131,6 +131,52 @@ class GameStateNfcTest(TempAccountsMixin, unittest.TestCase):
         self.assertEqual(len(credit_updates), 1)
         self.assertEqual(self.game.state, State.IDLE)
 
+    def _spin_with_base_win(self, base_win):
+        # evaluate_lines liefert den Gewinn für den Grundeinsatz, _on_spin_complete
+        # skaliert ihn mit Einsatz / SPIN_COST.
+        self.game.pull_lever()
+        with mock.patch("game_state.evaluate_lines", return_value=[{"win": base_win}]),              mock.patch("game_state.collect_multiplier_hits", return_value=[]):
+            self.game._on_spin_complete()
+        return [p for e, p in self.events if e == "payout"][-1]
+
+    def _card_with_credits(self, amount):
+        self.accounts.handle_card("A")
+        self.accounts.add("A", amount)
+
+    def test_jackpot_at_base_bet(self):
+        self._card_with_credits(1000)
+        payout = self._spin_with_base_win(config.SPIN_COST * config.JACKPOT_WIN_FACTOR)
+        self.assertTrue(payout["jackpot"])
+
+    def test_below_factor_is_no_jackpot(self):
+        self._card_with_credits(1000)
+        payout = self._spin_with_base_win(config.SPIN_COST * config.JACKPOT_WIN_FACTOR - 1)
+        self.assertFalse(payout["jackpot"])
+
+    def test_jackpot_threshold_scales_with_bet(self):
+        # Höherer Einsatz: gleicher Grundgewinn skaliert mit, Grenze aber auch -
+        # ein kleiner Gewinn wird dadurch nicht zum Jackpot.
+        self._card_with_credits(10000)
+        self.game.cycle_bet()
+        self.game.cycle_bet()
+        bet = self.game.current_bet()
+        self.assertGreater(bet, config.SPIN_COST)
+        small = self._spin_with_base_win(5)
+        self.assertEqual(small["bet"], bet)
+        self.assertGreater(small["amount"], 0)
+        self.assertFalse(small["jackpot"])
+        big = self._spin_with_base_win(config.SPIN_COST * config.JACKPOT_WIN_FACTOR)
+        self.assertEqual(big["amount"], bet * config.JACKPOT_WIN_FACTOR)
+        self.assertTrue(big["jackpot"])
+
+    def test_loss_is_no_jackpot(self):
+        self._card_with_credits(1000)
+        self.game.pull_lever()
+        with mock.patch("game_state.evaluate_lines", return_value=[]),              mock.patch("game_state.collect_multiplier_hits", return_value=[]):
+            self.game._on_spin_complete()
+        payout = [p for e, p in self.events if e == "payout"][-1]
+        self.assertFalse(payout["jackpot"])
+
 
 if __name__ == "__main__":
     unittest.main()

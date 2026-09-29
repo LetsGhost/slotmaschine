@@ -200,8 +200,16 @@ Folge** liegen (klassische Slot-Logik); ab 3 gibt es eine Auszahlung,
 die Höhe hängt vom Symbol und der Anzahl (3/4/5) ab (`PAYOUTS` in
 `backend/config.py`). Seltenere Symbole (`WEIGHTS`) zahlen deutlich
 mehr - `seven` ist das Jackpot-Symbol: schon 3x seven auf einer Payline
-erreicht `JACKPOT_THRESHOLD` (`frontend/js/socket.js`) und löst die
-Jackpot-Animation aus.
+erreicht die Jackpot-Grenze und löst die Jackpot-Animation aus.
+
+**Einsatz & Jackpot:** Alle Gewinne in `PAYOUTS` gelten für den Grundeinsatz
+`SPIN_COST` (10) und skalieren mit Einsatz / `SPIN_COST`. Ein Gewinn zählt als
+Jackpot (`win_jackpot` statt `win_small`), wenn er mindestens
+`JACKPOT_WIN_FACTOR` (Default 10) x Einsatz des Spins beträgt - die Grenze
+wächst also mit dem Einsatz (Einsatz 10 → ab 100, Einsatz 500 → ab 5000),
+damit bei hohem Einsatz nicht praktisch jeder Gewinn ein Jackpot ist.
+Entschieden wird serverseitig (`backend/game_state.py`, Feld `jackpot` im
+`payout`-Event).
 
 ## Gewinn-Multiplikatoren
 
@@ -259,6 +267,45 @@ Vollständig ohne Codeänderung konfigurierbar:
   Mitgeliefert sind zwei Platzhalter-Varianten sowie `sniper_count` mit dem
   echten `assets/overlays/sniper_shoot.gif` (Zielfernrohr, das pro Treffer so
   oft "schießt" wie der Multiplikator-Wert - siehe `"sniper_count"` unten).
+
+## Balancing-Analyse: Auszahlungsquote über 100 %
+
+**Befund (Stand 2026-09-29, noch offen):** Die Maschine zahlt auf Dauer
+**mehr aus, als sie einnimmt**. Simulation von 500.000 Spins mit dem echten
+Backend-Code (`reels.spin`, `roll_multipliers`, `evaluate_lines`) und dieser
+Konfiguration:
+
+- `WEIGHTS = [40, 30, 15, 10, 5]` (cherry, lemon, bell, star, seven)
+- `PAYOUTS` wie in `backend/config.py`, 5 Paylines
+- `multiplier_config.json`: `chance_per_symbol` 0.12, `values` 2-7,
+  `weights` [35, 25, 16, 12, 7, 5], `combine_mode` `"sum"`
+
+| Kennzahl | Wert |
+|---|---|
+| Spins mit Gewinn | 38 % (ca. jeder 2.-3. Spin) |
+| Jackpot (≥ 10x Einsatz) | 3,4 % (ca. jeder 29. Spin) |
+| **Auszahlungsquote (RTP)** | **152 %** - pro 10 Credits Einsatz kommen im Schnitt ~15 zurück |
+| Größter Gewinn (Einsatz 10) | 6000 (600x Einsatz) |
+
+Folgen:
+
+- Das Guthaben jedes Spielers wächst auf Dauer von selbst, statt langsam zu
+  sinken. Echte Automaten liegen unter 100 % (typisch 90-96 %).
+- **Die Multiplikatoren treiben das:** 97 % aller Jackpots hatten mindestens
+  einen Multiplikator auf der Gewinnkette. Häufigste Jackpot-Auslöser waren
+  5x cherry, 5x lemon, 4x lemon und 4x cherry - jeweils mit Multiplikator.
+  Ohne Multiplikator braucht es für einen Jackpot 3x seven, 5x bell oder
+  5x star, was sehr selten ist.
+- Da Gewinn und Jackpot-Grenze beide mit dem Einsatz skalieren, gelten diese
+  Quoten für jeden Einsatz gleich.
+
+Stellschrauben, um unter 100 % zu kommen (vor einer Änderung erneut
+simulieren): `chance_per_symbol` senken, niedrige Multiplikator-Werte stärker
+gewichten bzw. hohe `values` streichen, oder die kleinen Gewinne
+(cherry/lemon) in `PAYOUTS` senken. `combine_mode` auf `"sum"` lassen -
+`"product"` würde die Quote bei mehreren Treffern noch weiter erhöhen.
+Bewusst so belassen ist auch legitim, solange es eine Spaß-Maschine ohne
+echtes Geld bleibt.
 
 ## Konfiguration
 

@@ -30,6 +30,12 @@ PAYLINES = [
 
 SPIN_DURATION_MS = [1200, 1500, 1800, 2100, 2400]  # pro Spalte, damit sie nacheinander stoppen
 SPIN_COST = 10  # Grundeinsatz - die Gewinne in PAYOUTS gelten für diesen Einsatz
+
+# Ein Gewinn zählt als Jackpot (Frontend: "win_jackpot" statt "win_small"), wenn
+# er mindestens JACKPOT_WIN_FACTOR x Einsatz des Spins beträgt - relativ statt
+# fester Grenze, sonst wäre bei hohem Einsatz praktisch jeder Gewinn ein Jackpot.
+# Beim Grundeinsatz 10 entspricht das 100 Credits.
+JACKPOT_WIN_FACTOR = 10
 # Einsatzstufen, durchgeschaltet per Tipp auf das EINSATZ-Feld (nach der
 # letzten wieder von vorn). "all" = gesamtes Guthaben der aktiven Karte.
 # Gewinne skalieren mit Einsatz / SPIN_COST.

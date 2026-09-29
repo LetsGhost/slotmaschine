@@ -123,9 +123,26 @@ body:not(.debug-mode) #card-toast {
   border-color: #ff5252;
 }
 
-#debug-panel {
+/* Debug-Modus: Die Seite scrollt (sonst schneidet overflow:hidden das lange
+   Button-Panel unten ab), die Stage bleibt dabei oben kleben, damit die
+   Animationen beim Klicken weiter unten im Panel sichtbar bleiben. Alles hier
+   greift nur mit body.debug-mode - der Kiosk-Modus bleibt unverändert. */
+body.debug-mode {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+body.debug-mode #stage {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.8);
+}
+
+body.debug-mode #debug-panel {
   max-width: 800px;
   margin: 10px auto;
+  padding: 0 8px 16px;
   color: #ccc;
   font-size: 12px;
   display: grid;
