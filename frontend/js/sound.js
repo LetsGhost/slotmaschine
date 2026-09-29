@@ -38,6 +38,11 @@ const SOUND_FILES = {
   move_mf_meme: "assets/audio/animations/win/move_mf_meme.mp3",
   // ~4s, so lang wie die "fade"-Einblendung von jojo.jpg.
   jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.wav",
+  // Sek. 31.23-35.23 aus "Blade x Into The Void" (Original in
+  // assets_originals/audio): 2 Schläge Anlauf, Drop bei 0.8s, danach 8 Schläge
+  // (150 BPM = 400ms/Schlag), 400ms Ausblenden - passt auf die "party"-Animation
+  // (duration_ms 4000, beat_ms 400, fade_out_ms 400).
+  into_the_void: "assets/audio/animations/jackpot/into_the_void.mp3",
   // ~13.8s, so lang wie die "fade"-Einblendung von montanablack.gif.
   monte_dance: "assets/audio/animations/jackpot/success_monte_dance.wav",
   // ~4.3s, so lang wie die rote Sieben der x7-Multiplikator-Animation.

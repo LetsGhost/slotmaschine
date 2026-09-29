@@ -82,8 +82,9 @@
         "type": "image",
         "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
         "anim": "party",
+        "sound": "into_the_void",
         "duration_ms": 4000,
-        "beat_ms": 500,
+        "beat_ms": 400,
         "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
       }
     ]
@@ -418,8 +419,9 @@
     "type": "image",
     "src": "assets/overlays/1d0714cc-de1f-4d47-9696-0929397e988d(1).jpg",
     "anim": "party",
+    "sound": "into_the_void",
     "duration_ms": 4000,
-    "beat_ms": 500,
+    "beat_ms": 400,
     "position": { "top": 90, "left": 300, "width": 200, "height": 260 }
   },
 
