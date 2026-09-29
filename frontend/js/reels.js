@@ -49,12 +49,32 @@ function buildSpinStrip() {
   return strip;
 }
 
-const reelState = Array.from({ length: GRID_COLS }, () => ({
+function randomSymbol() {
+  return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+}
+
+// Zufälliges Startraster beim Laden der Seite - neu würfeln, solange eine
+// Gewinnlinie (3 gleiche von links) entsteht, damit es nicht nach Gewinn aussieht.
+function randomStartGrid() {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const grid = Array.from({ length: GRID_COLS }, () => Array.from({ length: GRID_ROWS }, randomSymbol));
+    const looksLikeWin = PAYLINES.some((line) => {
+      const [first, ...rest] = line.slice(0, 3).map(([col, row]) => grid[col][row]);
+      return rest.every((symbol) => symbol === first);
+    });
+    if (!looksLikeWin) return grid;
+  }
+  return Array.from({ length: GRID_COLS }, () => Array.from({ length: GRID_ROWS }, randomSymbol));
+}
+
+const startGrid = randomStartGrid();
+
+const reelState = startGrid.map((columnSymbols) => ({
   spinning: false,
   offset: 0,
   spinIndex: 0,
   spinSymbols: [],
-  columnSymbols: Array.from({ length: GRID_ROWS }, () => SYMBOLS[0]),
+  columnSymbols,
 }));
 
 let animationHandle = null;

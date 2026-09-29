@@ -37,6 +37,8 @@ const SOUND_FILES = {
   bouncing_yaris: "assets/audio/animations/win/bouncing_yaris.mp3",
   // Tonspur von move_mf_meme.webm (Original in assets_originals/overlays).
   move_mf_meme: "assets/audio/animations/win/move_mf_meme.mp3",
+  // Tonspur von simpson_meme.webm (Original in assets_originals/overlays).
+  simpson_meme: "assets/audio/animations/win/simpson_meme.mp3",
   // ~4s, so lang wie die "fade"-Einblendung von jojo.jpg.
   jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.wav",
   // Sek. 31.23-35.23 aus "Blade x Into The Void" (Original in

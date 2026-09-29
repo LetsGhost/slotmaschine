@@ -40,6 +40,12 @@
         "src": "assets/overlays/move_mf_meme.webm",
         "sound": "move_mf_meme",
         "position": { "top": 0, "left": 220, "width": 360, "height": 480 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/simpson_meme.webm",
+        "sound": "simpson_meme",
+        "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
       }
     ]
   },
@@ -376,6 +382,13 @@
     "src": "assets/overlays/move_mf_meme.webm",
     "sound": "move_mf_meme",
     "position": { "top": 0, "left": 220, "width": 360, "height": 480 }
+  },
+
+  "simpson_meme_demo": {
+    "type": "video",
+    "src": "assets/overlays/simpson_meme.webm",
+    "sound": "simpson_meme",
+    "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
   },
 
   "jojo_fade_demo": {
