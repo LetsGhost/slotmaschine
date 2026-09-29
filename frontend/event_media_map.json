@@ -65,16 +65,19 @@
         "position": { "top": 130, "left": 290, "width": 220, "height": 220 }
       },
       {
-        "type": "text",
+        "type": "image",
+        "src": "assets/overlays/stonks.png",
         "anim": "stonks",
         "direction": "up",
-        "sound": "stonks"
+        "sound": { "name": "stonks", "delay_ms": 2200 },
+        "position": { "top": 280, "left": 520, "width": 260, "height": 189 }
       },
       {
         "type": "text",
         "anim": "gta",
         "variant": "passed",
-        "sound": "gta_passed"
+        "sound": "gta_passed",
+        "hold_ms": 5500
       },
       {
         "type": "image",
@@ -165,6 +168,7 @@
       {
         "type": "text",
         "anim": "brainrot_split",
+        "layout": "side",
         "gameplay_src": "assets/overlays/subway_surfers.webm",
         "runner_src": "assets/overlays/sybau_domi.png"
       }
@@ -297,7 +301,8 @@
         "type": "text",
         "anim": "to_be_continued",
         "sound": "roundabout",
-        "freeze_at_ms": 0
+        "freeze_at_ms": 3970,
+        "arrow_delay_ms": 80
       },
       {
         "type": "text",
@@ -305,9 +310,11 @@
         "sound": ["snap", { "name": "dust", "delay_ms": 300 }]
       },
       {
-        "type": "text",
+        "type": "image",
+        "src": "assets/overlays/stonks.png",
         "anim": "stonks",
-        "direction": "down"
+        "direction": "down",
+        "position": { "top": 280, "left": 520, "width": 260, "height": 189 }
       },
       {
         "type": "text",
@@ -318,7 +325,9 @@
         "type": "text",
         "anim": "gta",
         "variant": "wasted",
-        "sound": "gta_wasted"
+        "sound": "gta_wasted",
+        "slowmo_ms": 3430,
+        "hold_ms": 3000
       },
       {
         "type": "text",
@@ -331,13 +340,6 @@
 
   "idle_attract": {
     "anim_pool": [
-      {
-        "type": "image",
-        "src": "assets/sprites/book_of_rah_logo.jpg",
-        "anim": "dvd_bounce",
-        "speed_px_s": 150,
-        "position": { "top": 0, "left": 0, "width": 184, "height": 120 }
-      }
     ]
   },
 
@@ -817,7 +819,8 @@
     "type": "text",
     "anim": "to_be_continued",
     "sound": "roundabout",
-    "freeze_at_ms": 0
+    "freeze_at_ms": 3970,
+    "arrow_delay_ms": 80
   },
 
   "thanos_snap_demo": {
@@ -833,16 +836,20 @@
   },
 
   "stonks_up_demo": {
-    "type": "text",
+    "type": "image",
+    "src": "assets/overlays/stonks.png",
     "anim": "stonks",
     "direction": "up",
-    "sound": "stonks"
+    "sound": { "name": "stonks", "delay_ms": 2200 },
+    "position": { "top": 280, "left": 520, "width": 260, "height": 189 }
   },
 
   "stonks_down_demo": {
-    "type": "text",
+    "type": "image",
+    "src": "assets/overlays/stonks.png",
     "anim": "stonks",
-    "direction": "down"
+    "direction": "down",
+    "position": { "top": 280, "left": 520, "width": 260, "height": 189 }
   },
 
   "crt_off_demo": {
@@ -864,14 +871,17 @@
     "type": "text",
     "anim": "gta",
     "variant": "wasted",
-    "sound": "gta_wasted"
+    "sound": "gta_wasted",
+    "slowmo_ms": 3430,
+    "hold_ms": 3000
   },
 
   "gta_passed_demo": {
     "type": "text",
     "anim": "gta",
     "variant": "passed",
-    "sound": "gta_passed"
+    "sound": "gta_passed",
+    "hold_ms": 5500
   },
 
   "among_us_eject_demo": {
@@ -893,6 +903,7 @@
   "brainrot_split_demo": {
     "type": "text",
     "anim": "brainrot_split",
+    "layout": "side",
     "gameplay_src": "assets/overlays/subway_surfers.webm",
     "runner_src": "assets/overlays/sybau_domi.png"
   },

@@ -54,6 +54,15 @@ export function trackLoop(eventName, step) {
   });
 }
 
+// Stoppt alle noch laufenden Sounds eines Events (z.B. Hintergrundmusik einer
+// Animation, die länger ist als die Animation selbst).
+export function stopEventSounds(eventName) {
+  const controller = activeControllers.get(eventName);
+  if (!controller) return;
+  controller.sounds.forEach((source) => source.stop());
+  controller.sounds.clear();
+}
+
 export function getController(eventName) {
   let controller = activeControllers.get(eventName);
   if (!controller) {

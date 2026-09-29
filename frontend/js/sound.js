@@ -80,22 +80,21 @@ const SOUND_FILES = {
   // Erste 6s von results/jackpot/misc_don-pollo-salamalekum.mp3, letzte 400ms
   // ausgeblendet - so lang wie die "party"-Animation mit iltan-sumra.png.
   salamalekum: "assets/audio/animations/jackpot/salamalekum.mp3",
-};
-
-// Optionale Sounds für die Meme-Animationen aus meme_anims.js: Die Dateien
-// sind (noch) nicht im Projekt - einfach unter genau diesem Pfad ablegen, dann
-// spielen sie automatisch. Fehlt eine Datei, bleibt es ohne Warnung still.
-const OPTIONAL_SOUND_FILES = {
-  // "Roundabout"-Intro (Yes) bis zum Einfrieren - "to_be_continued".
+  // Sek. 2.50-9.60 der Roundabout-Meme-Source (ab dem dritten Intro-Ton),
+  // letzte 500ms ausgeblendet: der Bass-Riff setzt bei 3.97s ein =
+  // freeze_at_ms der "to_be_continued"-Animation.
   roundabout: "assets/audio/animations/lose/roundabout.mp3",
-  // GTA-Sounds für "gta" (variant "wasted" bzw. "passed").
+  // Sek. 1.0-7.9 des GTA-V-Wasted-Sounds: Zeitlupen-Whoosh ab 0s, zweiter
+  // Schlag bei 2.4s = Einblendung von "wasted" (slowmo_ms 3430 x 0.7).
   gta_wasted: "assets/audio/animations/lose/gta_wasted.mp3",
+  // Erste 6.3s des San-Andreas-Mission-Passed-Jingles, letzte 500ms ausgeblendet.
   gta_passed: "assets/audio/animations/win/gta_passed.mp3",
-  // Kampfmusik für "pokemon_battle".
+  // Sek. 0.7-13.2 der Pokémon-Kampfmusik (Anime-Version), letzte Sekunde
+  // ausgeblendet - "pokemon_battle" stoppt sie beim Ausblenden ohnehin.
   pokemon_battle: "assets/audio/animations/multiplier/pokemon_battle.mp3",
-  // Auswurf-Sound für "among_us_eject".
+  // Sek. 0.8-5.1 des Among-Us-Ejected-Sounds ("among_us_eject").
   among_us_eject: "assets/audio/animations/lose/among_us_eject.mp3",
-  // Stonks-Sound für "stonks" (direction "up").
+  // Sek. 0.7-2.2 des Stonks-Sounds - per delay_ms auf den "STONKS"-Schriftzug gelegt.
   stonks: "assets/audio/animations/win/stonks.mp3",
 };
 
@@ -148,6 +147,8 @@ const SOUND_VOLUMES = {
   case_cam: 0.7,
   // Bis 0dB normalisiert, wie der Schuss.
   bet_up: 0.6,
+  // Durchgehend laut gemastert (~-14dB RMS), würde sonst Text-Piepsen und Treffer übertönen.
+  pokemon_battle: 0.5,
 };
 
 // Loop-Bereich (Sekunden) für Dauergeräusche. Die Spin-Datei tickt bis ~1.05s
@@ -206,7 +207,7 @@ masterBus.connect(audioCtx.destination);
 
 const BUSES = { master: masterBus, music: musicBus, sfx: sfxBus };
 
-async function loadBuffer(name, url, { quiet = false } = {}) {
+async function loadBuffer(name, url) {
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -215,7 +216,7 @@ async function loadBuffer(name, url, { quiet = false } = {}) {
     buffers.set(name, audioBuffer);
     return true;
   } catch (err) {
-    if (!quiet) console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
+    console.warn(`Sound "${name}" konnte nicht geladen werden (Asset fehlt?):`, err.message);
     return false;
   }
 }
@@ -241,7 +242,6 @@ async function loadSoundPools() {
 export async function preloadSounds() {
   await Promise.all([
     ...Object.entries(SOUND_FILES).map(([name, url]) => loadBuffer(name, url)),
-    ...Object.entries(OPTIONAL_SOUND_FILES).map(([name, url]) => loadBuffer(name, url, { quiet: true })),
     loadSoundPools(),
     renderSynthSounds(),
   ]);

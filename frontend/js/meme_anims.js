@@ -11,6 +11,7 @@ import {
   trackAnimation,
   trackLoop,
   playTrackedSounds,
+  stopEventSounds,
   createEventDiv,
   shake,
   flashScreen,
@@ -589,7 +590,8 @@ function runCrtOff(eventName, el, entry, pos, onComplete) {
 // mit KP-Balken und Textbox. Der Spieler setzt "MULTIPLIKATOR x{value}" ein,
 // die KP der Slotmaschine sinken um value / ko_value, ab ko_value ist sie K.O.
 // Felder (alle optional): player_src, player_name ("OLEG"), enemy_src,
-// enemy_name ("EINARMIGER BANDIT"), attack_name ("MULTIPLIKATOR"), ko_value
+// enemy_name ("GLÜCKSMASCHINE"), enemy_intro (Einleitungssatz, {name} = Gegner,
+// Default "Eine wilde {name} erscheint!"), attack_name ("MULTIPLIKATOR"), ko_value
 // (6), char_ms (28), line_pause_ms (650), hold_ms (900), fade_out_ms (400),
 // text_blip / hit_sound / faint_sound (Sound-Angaben, false = stumm).
 const POKE_BOX =
@@ -605,7 +607,8 @@ function runPokemonBattle(eventName, el, entry, pos, onComplete, context) {
   el.remove();
   const value = context?.value ?? entry.value ?? 3;
   const playerName = entry.player_name ?? "OLEG";
-  const enemyName = entry.enemy_name ?? "EINARMIGER BANDIT";
+  const enemyName = entry.enemy_name ?? "GLÜCKSMASCHINE";
+  const enemyIntro = (entry.enemy_intro ?? "Eine wilde {name} erscheint!").replace("{name}", enemyName);
   const attackName = entry.attack_name ?? "MULTIPLIKATOR";
   const koValue = entry.ko_value ?? 6;
   const charMs = entry.char_ms ?? 28;
@@ -679,7 +682,7 @@ function runPokemonBattle(eventName, el, entry, pos, onComplete, context) {
     anim(eventName, $(".pk-enemy-box"), [{ transform: "translateX(-440px)" }, { transform: "none" }], { duration: 300, easing: "ease-out" });
     anim(eventName, $(".pk-player-box"), [{ transform: "translateX(440px)" }, { transform: "none" }], { duration: 300, easing: "ease-out" });
 
-    await typeText(eventName, textBox, `Ein wilder ${enemyName} erscheint!`, charMs, blip);
+    await typeText(eventName, textBox, enemyIntro, charMs, blip);
     await wait(eventName, pauseMs);
     await typeText(eventName, textBox, `Los, ${playerName}!`, charMs, blip);
     anim(eventName, player, [{ transform: "translateY(0)" }, { transform: "translateY(-18px)" }, { transform: "translateY(0)" }], { duration: 300 });
@@ -720,7 +723,11 @@ function runPokemonBattle(eventName, el, entry, pos, onComplete, context) {
       await wait(eventName, pauseMs);
     }
     await wait(eventName, holdMs);
-    fadeOutAndRemove(eventName, [root], fadeOutMs, onComplete);
+    // Kampfmusik ist länger als ein kurzer Kampf - mit dem Ausblenden beenden.
+    fadeOutAndRemove(eventName, [root], fadeOutMs, () => {
+      stopEventSounds(eventName);
+      onComplete?.();
+    });
   })();
 }
 
@@ -1035,16 +1042,19 @@ function runMlgMontage(eventName, el, entry, pos, onComplete) {
 
 // --- 10. "brainrot_split" -----------------------------------------------------
 
-// TikTok-Splitscreen: Das Spielbild schrumpft in die obere Hälfte, unten läuft
+// TikTok-Splitscreen: Das Spielbild schrumpft zur Seite, daneben läuft
 // Gameplay (eigener Clip über gameplay_src, sonst ein gezeichneter
 // Subway-Surfers-artiger Endlos-Lauf), in der Mitte poppen Untertitel Wort für
-// Wort auf, optional liest eine TTS-Stimme mit. Felder (alle optional):
+// Wort auf, optional liest eine TTS-Stimme mit. layout "bottom" (Default):
+// Spielbild oben, Gameplay als Streifen unten. layout "side": Spielbild links,
+// Gameplay als Hochkant-Spalte rechts (für Hochformat-Clips wie
+// subway_surfers.webm). Felder (alle optional): layout, side_width (240),
 // caption, word_ms (330), split_ms (450), duration_ms (Default: passend zur
 // Caption), gameplay_src (Video), runner_src (Läufer-Bild für den gezeichneten
 // Lauf), tts (true), tts_lang ("de-DE"), tts_rate (1.15), fade_out_ms (400).
 const BRAINROT_CAPTION = "BRO HAT EINFACH DEN JACKPOT GEKNACKT DAS IST KEIN GLÜCK DAS IST SKILL SIGMA GRINDSET";
 
-function buildFakeRunner(eventName, container, runnerSrc) {
+function buildFakeRunner(eventName, container, runnerSrc, width, height) {
   container.innerHTML = "";
   const sky = document.createElement("div");
   sky.style.cssText = "position:absolute;inset:0;background:linear-gradient(180deg, #6ec6ff 0%, #bfe8ff 38%, #c9b28a 38%, #a88d64 100%)";
@@ -1063,18 +1073,21 @@ function buildFakeRunner(eventName, container, runnerSrc) {
 
   const runner = document.createElement("img");
   runner.src = runnerSrc;
-  runner.style.cssText = "position:absolute;left:355px;top:95px;width:90px;height:120px;object-fit:contain;filter:drop-shadow(0 6px 4px rgba(0,0,0,0.5))";
+  runner.style.cssText =
+    `position:absolute;left:${width / 2 - 45}px;top:${height - 145}px;width:90px;height:120px;object-fit:contain;` +
+    "filter:drop-shadow(0 6px 4px rgba(0,0,0,0.5))";
   container.appendChild(runner);
   anim(eventName, runner, [{ transform: "translateY(0)" }, { transform: "translateY(-14px)" }, { transform: "translateY(0)" }], {
     duration: 280,
     iterations: Infinity,
   });
+  const lane = Math.min(160, width * 0.3);
   anim(eventName, runner, [
     { translate: "0 0" },
-    { translate: "-160px 0", offset: 0.2 },
-    { translate: "-160px 0", offset: 0.45 },
-    { translate: "160px 0", offset: 0.65 },
-    { translate: "160px 0", offset: 0.85 },
+    { translate: `${-lane}px 0`, offset: 0.2 },
+    { translate: `${-lane}px 0`, offset: 0.45 },
+    { translate: `${lane}px 0`, offset: 0.65 },
+    { translate: `${lane}px 0`, offset: 0.85 },
     { translate: "0 0" },
   ], { duration: 3200, iterations: Infinity, easing: "ease-in-out" });
 }
@@ -1088,17 +1101,42 @@ function runBrainrotSplit(eventName, el, entry, pos, onComplete) {
   const durationMs = entry.duration_ms ?? splitMs + words.length * wordMs + 900;
   const runnerSrc = entry.runner_src ?? "assets/overlays/sybau_domi.png";
   const half = H / 2;
-  const shrunk = { transform: "scale(0.5)" };
+  const side = entry.layout === "side";
+  const sideWidth = entry.side_width ?? 240;
 
-  const stagePlayers = animateStage(eventName, [{ transform: "scale(1)" }, shrunk], { duration: splitMs, easing: "ease-in-out", fill: "forwards" }, { x: W / 2, y: 0 });
-  const sideBars = createEventDiv(
+  // Spielbild verkleinern und die freien Ränder daneben schwarz abdecken.
+  let shrunk;
+  let stagePlayers;
+  let bars;
+  let area;
+  if (side) {
+    const scale = (W - sideWidth) / W;
+    const top = (H * (1 - scale)) / 2;
+    shrunk = { transform: `scale(${scale})` };
+    stagePlayers = animateStage(eventName, [{ transform: "scale(1)" }, shrunk], { duration: splitMs, easing: "ease-in-out", fill: "forwards" }, { x: 0, y: H / 2 });
+    bars = createEventDiv(
+      eventName,
+      `left:0;top:0;width:${W - sideWidth}px;height:${H}px;opacity:0;` +
+        `background:linear-gradient(180deg, #000 0 ${top}px, transparent ${top}px ${H - top}px, #000 ${H - top}px)`
+    );
+    area = { left: W - sideWidth, top: 0, width: sideWidth, height: H, from: "translateX(100%)" };
+  } else {
+    shrunk = { transform: "scale(0.5)" };
+    stagePlayers = animateStage(eventName, [{ transform: "scale(1)" }, shrunk], { duration: splitMs, easing: "ease-in-out", fill: "forwards" }, { x: W / 2, y: 0 });
+    bars = createEventDiv(
+      eventName,
+      `left:0;top:0;width:${W}px;height:${half}px;opacity:0;` +
+        `background:linear-gradient(90deg, #000 0 ${W / 4}px, transparent ${W / 4}px ${(W * 3) / 4}px, #000 ${(W * 3) / 4}px)`
+    );
+    area = { left: 0, top: half, width: W, height: half, from: "translateY(100%)" };
+  }
+  anim(eventName, bars, [{ opacity: 0 }, { opacity: 1 }], { duration: splitMs, fill: "forwards" });
+
+  const gameplay = createEventDiv(
     eventName,
-    `left:0;top:0;width:${W}px;height:${half}px;opacity:0;` +
-      `background:linear-gradient(90deg, #000 0 ${W / 4}px, transparent ${W / 4}px ${(W * 3) / 4}px, #000 ${(W * 3) / 4}px)`
+    `left:${area.left}px;top:${area.top}px;width:${area.width}px;height:${area.height}px;overflow:hidden;background:#000`
   );
-  anim(eventName, sideBars, [{ opacity: 0 }, { opacity: 1 }], { duration: splitMs, fill: "forwards" });
-
-  const gameplay = createEventDiv(eventName, `left:0;top:${half}px;width:${W}px;height:${half}px;overflow:hidden;background:#000`);
+  const fakeRunner = () => buildFakeRunner(eventName, gameplay, runnerSrc, area.width, area.height);
   if (entry.gameplay_src) {
     const video = document.createElement("video");
     video.src = entry.gameplay_src;
@@ -1107,12 +1145,12 @@ function runBrainrotSplit(eventName, el, entry, pos, onComplete) {
     video.loop = true;
     video.playsInline = true;
     video.style.cssText = "width:100%;height:100%;object-fit:cover";
-    video.addEventListener("error", () => buildFakeRunner(eventName, gameplay, runnerSrc), { once: true });
+    video.addEventListener("error", fakeRunner, { once: true });
     gameplay.appendChild(video);
   } else {
-    buildFakeRunner(eventName, gameplay, runnerSrc);
+    fakeRunner();
   }
-  anim(eventName, gameplay, [{ transform: "translateY(100%)" }, { transform: "translateY(0)" }], {
+  anim(eventName, gameplay, [{ transform: area.from }, { transform: "none" }], {
     duration: splitMs,
     easing: "ease-out",
     fill: "forwards",
@@ -1147,7 +1185,7 @@ function runBrainrotSplit(eventName, el, entry, pos, onComplete) {
     eventName,
     setTimeout(() => {
       restore(eventName, stageLayers(), shrunk, fadeOutMs, stagePlayers);
-      fadeOutAndRemove(eventName, [sideBars, gameplay, caption], fadeOutMs, onComplete);
+      fadeOutAndRemove(eventName, [bars, gameplay, caption], fadeOutMs, onComplete);
     }, durationMs)
   );
 }
