@@ -1,5 +1,6 @@
 const SOUND_FILES = {
-  lever: "assets/audio/game/lever.mp3",
+  // Hebel-Kurbeln beim Spin-Start (socket.js, state_update SPINNING).
+  lever: "assets/audio/game/freesound_community-levercrank-99375.mp3",
   spin: "assets/audio/game/spin-232536.mp3",
   reel_stop: "assets/audio/game/ping-82822.mp3",
   gunshot: "assets/audio/animations/multiplier/gun-shots-from-a-distance-5-96388.mp3",
@@ -57,6 +58,8 @@ const SOUND_FILES = {
 const SOUND_OFFSETS = {
   reel_stop: 0.3,
   gunshot: 0.035,
+  // ~0.32s Stille vor dem ersten Klick des Hebels.
+  lever: 0.3,
   // ~0.48s Stille vor dem Kassenklingeln.
   card_topup: 0.45,
 };
