@@ -40,7 +40,11 @@ BET_STEPS = [10, 20, 50, 100, 200, 300, 500, "all"]
 # tunen lässt (siehe reels.py: roll_multipliers/evaluate_lines).
 MULTIPLIER_CONFIG_FILE = "multiplier_config.json"
 
-GPIO_LEVER_PIN = 17
+# Grove Base HAT: Pin = Nummer der Buchse (D5 -> 5, D16 -> 16, D18 -> 18, ...).
+GPIO_LEVER_PIN = 16
+# Grove-Module (Micro Switch, Button) liefern gedrückt HIGH -> True.
+# Einfacher Taster zwischen Pin und GND -> False (interner Pull-up).
+GPIO_LEVER_ACTIVE_HIGH = True
 
 # Debug-Modus (Debug-Panel sichtbar, Stage in Originalgröße statt auf den
 # Viewport skaliert). Gesteuert über die Umgebungsvariable SLOT_DEBUG

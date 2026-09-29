@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class GPIOHandler:
-    def __init__(self, pin: int, on_pull: Callable[[], None]):
+    def __init__(self, pin: int, on_pull: Callable[[], None], active_high: bool = False):
         self.on_pull = on_pull
         self._mock = False
         self.button = None
@@ -15,9 +15,10 @@ class GPIOHandler:
         try:
             from gpiozero import Button
 
-            self.button = Button(pin)
+            # active_high: interner Pull-down, gedrückt = HIGH (Grove-Module)
+            self.button = Button(pin, pull_up=not active_high, bounce_time=0.05)
             self.button.when_pressed = self._trigger
-            logger.info("GPIO aktiv auf Pin %s", pin)
+            logger.info("GPIO aktiv auf Pin %s (%s)", pin, "active-high" if active_high else "active-low")
         except Exception as exc:
             self._mock = True
             logger.info(

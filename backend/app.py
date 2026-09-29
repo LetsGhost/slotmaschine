@@ -52,7 +52,7 @@ def handle_card_scan(uid: str) -> None:
 
 
 game = GameState(account_manager, emit_event)
-gpio = GPIOHandler(config.GPIO_LEVER_PIN, game.pull_lever)
+gpio = GPIOHandler(config.GPIO_LEVER_PIN, game.pull_lever, config.GPIO_LEVER_ACTIVE_HIGH)
 nfc = NFCHandler(handle_card_scan)
 
 
