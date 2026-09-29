@@ -83,7 +83,7 @@
         "type": "image",
         "src": "assets/overlays/oleg_1.JPG",
         "anim": "mlg_montage",
-        "sound": "airhorn",
+        "sound": ["mlg_get_blazed", "airhorn"],
         "glasses": { "x": 50, "y": 48, "w": 70 },
         "position": { "top": 60, "left": 310, "width": 180, "height": 240 }
       }
@@ -314,6 +314,7 @@
         "src": "assets/overlays/stonks.png",
         "anim": "stonks",
         "direction": "down",
+        "sound": { "name": "not_stonks", "delay_ms": 2200 },
         "position": { "top": 280, "left": 520, "width": 260, "height": 189 }
       },
       {
@@ -849,6 +850,7 @@
     "src": "assets/overlays/stonks.png",
     "anim": "stonks",
     "direction": "down",
+    "sound": { "name": "not_stonks", "delay_ms": 2200 },
     "position": { "top": 280, "left": 520, "width": 260, "height": 189 }
   },
 
@@ -895,7 +897,7 @@
     "type": "image",
     "src": "assets/overlays/oleg_1.JPG",
     "anim": "mlg_montage",
-    "sound": "airhorn",
+    "sound": ["mlg_get_blazed", "airhorn"],
     "glasses": { "x": 50, "y": 48, "w": 70 },
     "position": { "top": 60, "left": 310, "width": 180, "height": 240 }
   },

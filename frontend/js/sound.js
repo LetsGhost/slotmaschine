@@ -1,3 +1,6 @@
+// Alle Effekte (hier und in den Pools) werden beim Start komplett als Float32
+// dekodiert - deshalb liegen sie als Mono-MP3 vor (halber RAM auf dem Pi,
+// Stereo-Originale in assets_originals bzw. der Git-Historie).
 const SOUND_FILES = {
   // Hebel-Kurbeln beim Spin-Start (socket.js, state_update SPINNING).
   lever: "assets/audio/game/freesound_community-levercrank-99375.mp3",
@@ -40,7 +43,7 @@ const SOUND_FILES = {
   // Tonspur von simpson_meme.webm (Original in assets_originals/overlays).
   simpson_meme: "assets/audio/animations/win/simpson_meme.mp3",
   // ~4s, so lang wie die "fade"-Einblendung von jojo.jpg.
-  jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.wav",
+  jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.mp3",
   // Sek. 31.23-35.23 aus "Blade x Into The Void" (Original in
   // assets_originals/audio): 2 Schläge Anlauf, Drop bei 0.8s, danach 8 Schläge
   // (150 BPM = 400ms/Schlag), 400ms Ausblenden - passt auf die "party"-Animation
@@ -52,11 +55,11 @@ const SOUND_FILES = {
   // fade_out 400).
   coin_payout: "assets/audio/animations/jackpot/coin_payout.mp3",
   // ~13.8s, so lang wie die "fade"-Einblendung von montanablack.gif.
-  monte_dance: "assets/audio/animations/jackpot/success_monte_dance.wav",
+  monte_dance: "assets/audio/animations/jackpot/success_monte_dance.mp3",
   // ~4.3s, so lang wie die rote Sieben der x7-Multiplikator-Animation.
-  basti_sieben: "assets/audio/animations/multiplier/success_basti-sieben.wav",
+  basti_sieben: "assets/audio/animations/multiplier/success_basti-sieben.mp3",
   // ~2.07s, laute Phase 1.1-1.8s = Reveal der "chest_reveal"-Animation.
-  fart_2: "assets/audio/animations/lose/fail_fart_2.wav",
+  fart_2: "assets/audio/animations/lose/fail_fart_2.mp3",
   // Erste 4.5s von results/lose/fail_lobotomy.mp3, letzte 400ms ausgeblendet -
   // so lang wie die "lobotomy_zoom"-Animation (700 + 2x550 + 1600 + 300).
   lobotomy: "assets/audio/animations/lose/lobotomy.mp3",
@@ -68,8 +71,8 @@ const SOUND_FILES = {
   are_ya_lost: "assets/audio/animations/lose/are_ya_lost.mp3",
   // Kopie von results/jackpot/success_omg.mp3 (Einstieg der "deep_fried"-Animation).
   omg: "assets/audio/animations/jackpot/omg.mp3",
-  // Kopie von results/lose/misc_lampe-frankreich.wav (1.6s, "drop_bounce" der Lampe).
-  lampe_frankreich: "assets/audio/animations/lose/lampe_frankreich.wav",
+  // Kopie von results/lose/misc_lampe-frankreich.mp3 (1.6s, "drop_bounce" der Lampe).
+  lampe_frankreich: "assets/audio/animations/lose/lampe_frankreich.mp3",
   // Kopie von results/lose/fail_fahh.mp3 (~1.9s, "pop_scale" mit Domi-Bild).
   fahh: "assets/audio/animations/lose/fahh.mp3",
   // Kopie von results/lose/fail_klonk.mp3 (0.4s) - wird per delay_ms auf die
@@ -96,6 +99,15 @@ const SOUND_FILES = {
   among_us_eject: "assets/audio/animations/lose/among_us_eject.mp3",
   // Sek. 0.7-2.2 des Stonks-Sounds - per delay_ms auf den "STONKS"-Schriftzug gelegt.
   stonks: "assets/audio/animations/win/stonks.mp3",
+  // Sek. 0.1-2.1 des Not-Stonks-Sounds (Original in assets_originals/audio) -
+  // per delay_ms auf den "NOT STONKS"-Schriftzug gelegt, wie "stonks".
+  not_stonks: "assets/audio/animations/lose/not_stonks.mp3",
+  // Sek. 19.965-25.315 von "Desembra - Get Blazed" (erster Song aus
+  // top10_mlg_edit_songs.mp3 in assets_originals/audio), letzte 400ms
+  // ausgeblendet: der Drop (Sek. 22.415) fällt auf 2450ms = Landung der
+  // "Deal with it"-Brille der "mlg_montage"-Animation (duration_ms 5000 x
+  // glasses_at 0.35 + 700ms Fall), Länge = duration_ms + fade_out_ms.
+  mlg_get_blazed: "assets/audio/animations/win/mlg_get_blazed.mp3",
 };
 
 // Per Web Audio erzeugte Sounds (kein Asset nötig): werden beim Start einmal
