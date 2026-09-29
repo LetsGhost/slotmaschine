@@ -52,13 +52,16 @@ class GameState:
             return
         self._bet_index = (self._bet_index + 1) % len(config.BET_STEPS)
         self.emit("credits_update", {"bet": self.bet_label()})
+        # Für den Einsatz-Sound im Frontend (Tonhöhe steigt pro Stufe).
+        self.emit("bet_changed", {"index": self._bet_index, "count": len(config.BET_STEPS)})
 
     def pull_lever(self) -> None:
         if self.state != State.IDLE:
             return
         uid = self.accounts.active_uid
         if uid is None:
-            self.emit("error", {"message": "Keine aktive Karte - bitte Karte auflegen"})
+            # Frontend zeigt daraufhin den "Karte präsentieren"-Dialog (socket.js).
+            self.emit("card_required", {})
             return
         bet = self.current_bet()
         if bet <= 0 or not self.accounts.deduct(uid, bet):

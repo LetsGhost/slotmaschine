@@ -97,7 +97,8 @@ class GameStateNfcTest(TempAccountsMixin, unittest.TestCase):
     def test_no_active_card_blocks_spin(self):
         self.game.pull_lever()
         self.assertEqual(self.game.state, State.IDLE)
-        self.assertIn("Keine aktive Karte", self.errors()[0])
+        self.assertIn("card_required", [e for e, _ in self.events])
+        self.assertEqual(self.errors(), [])
 
     def test_zero_credits_blocks_spin(self):
         self.accounts.handle_card("A")

@@ -3,6 +3,13 @@ const SOUND_FILES = {
   spin: "assets/audio/game/spin-232536.mp3",
   reel_stop: "assets/audio/game/ping-82822.mp3",
   gunshot: "assets/audio/animations/multiplier/gun-shots-from-a-distance-5-96388.mp3",
+  // Kassen-"Ka-ching" beim Aufladen (dieselbe, aktive Karte erneut aufgelegt).
+  // Name = Media-Event aus socket.js (onCardEvent -> playSound("card_topup")).
+  card_topup: "assets/audio/game/modestas123123-cash-register-kaching-sound-effect-125042.mp3",
+  // Tada beim Anmelden einer bekannten Karte (onCardEvent -> playSound("card_login")).
+  card_login: "assets/audio/game/floraphonic-tada-military-1-183974.mp3",
+  // Einsatz erhöht - socket.js spielt ihn pro Einsatzstufe höher ab.
+  bet_up: "assets/audio/game/tithuh-level-up-0-523643.mp3",
   // Auf you_lost.webm geschnitten: setzt mit dem Banner ein, endet mit dem Video.
   you_died: "assets/audio/animations/lose/you_died.mp3",
   // Ton zum Webcam-Clip der "case_open"-Animation (Sek. 11-13 des Originalvideos).
@@ -18,6 +25,8 @@ const SOUND_FILES = {
   gojo_float: "assets/audio/animations/jackpot/gojo_float.mp3",
   // Tonspur von cursed_plankton.webm (erste 4s des Originals, +8dB).
   cursed_plankton: "assets/audio/animations/lose/cursed_plankton.mp3",
+  // Tonspur von mrcrabs_laugh.webm (Original in assets_originals/overlays).
+  mrcrabs_laugh: "assets/audio/animations/lose/mrcrabs_laugh.mp3",
   // Erste 4s von why_so_seroius_audio.wav (Original in assets_originals/audio),
   // so lang wie die "fade"-Einblendung von jokijoki.png.
   why_so_serious: "assets/audio/animations/lose/why_so_serious.mp3",
@@ -25,6 +34,8 @@ const SOUND_FILES = {
   // assets_originals/overlays), -5dB; läuft zu bouncing_yaris.webm (Sek. 0-6,
   // Auto per rembg/isnet-general-use freigestellt).
   bouncing_yaris: "assets/audio/animations/win/bouncing_yaris.mp3",
+  // Tonspur von move_mf_meme.webm (Original in assets_originals/overlays).
+  move_mf_meme: "assets/audio/animations/win/move_mf_meme.mp3",
   // ~4s, so lang wie die "fade"-Einblendung von jojo.jpg.
   jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.wav",
   // ~13.8s, so lang wie die "fade"-Einblendung von montanablack.gif.
@@ -41,6 +52,8 @@ const SOUND_FILES = {
 const SOUND_OFFSETS = {
   reel_stop: 0.3,
   gunshot: 0.035,
+  // ~0.48s Stille vor dem Kassenklingeln.
+  card_topup: 0.45,
 };
 
 // Lautstärke (0-1) pro Sound; der Schuss ist bis 0dB normalisiert und würde
@@ -48,6 +61,8 @@ const SOUND_OFFSETS = {
 const SOUND_VOLUMES = {
   gunshot: 0.6,
   case_cam: 0.7,
+  // Bis 0dB normalisiert, wie der Schuss.
+  bet_up: 0.6,
 };
 
 // Loop-Bereich (Sekunden) für Dauergeräusche. Die Spin-Datei tickt bis ~1.05s
@@ -150,13 +165,15 @@ function resumeContext() {
 // vorzeitig per .stop() abbrechen können - z.B. clearEvent() in effects.js.
 // Optionen: delayMs (Startverzögerung, sample-genau über den AudioContext
 // geplant - ein .stop() greift also auch, bevor der Sound angefangen hat),
-// volume (Faktor auf SOUND_VOLUMES), bus ("sfx" oder "music").
-export function playSound(name, { delayMs = 0, volume = 1, bus = "sfx" } = {}) {
+// volume (Faktor auf SOUND_VOLUMES), bus ("sfx" oder "music"), playbackRate
+// (Abspielgeschwindigkeit - verschiebt auch die Tonhöhe, 2 = eine Oktave höher).
+export function playSound(name, { delayMs = 0, volume = 1, bus = "sfx", playbackRate = 1 } = {}) {
   const buffer = buffers.get(name);
   if (!buffer) return null;
   resumeContext();
   const source = audioCtx.createBufferSource();
   source.buffer = buffer;
+  source.playbackRate.value = playbackRate;
   const gain = audioCtx.createGain();
   gain.gain.value = (SOUND_VOLUMES[name] ?? 1) * volume;
   source.connect(gain).connect(BUSES[bus] ?? sfxBus);

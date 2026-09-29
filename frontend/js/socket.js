@@ -17,8 +17,19 @@ const winEl = document.getElementById("win-value");
 const cardToastEl = document.getElementById("card-toast");
 const debugCardEl = document.getElementById("debug-active-card");
 
+// Tonhöhenschritt (Halbtöne) des Einsatz-Sounds pro Einsatzstufe; niedrigste
+// Stufe = Originaltonhöhe, bei 8 Stufen endet die höchste ~1 Oktave + Ganzton darüber.
+const BET_PITCH_SEMITONES_PER_STEP = 2;
+
 const CARD_TOAST_MS = 2500;
 let cardToastTimer = null;
+
+const cardDialogEl = document.getElementById("card-dialog");
+// Dialog schließt sich spätestens nach dieser Zeit von selbst.
+const CARD_DIALOG_MS = 8000;
+let cardDialogTimer = null;
+// Aus "credits_update" (uid === null heißt: keine Karte aktiv).
+let hasActiveCard = false;
 
 let idleTimer = null;
 // Vom "payout"-Event gepuffert und erst gezeigt, nachdem die Multiplikator-
@@ -94,7 +105,41 @@ socket.on("payout", (data) => {
 socket.on("credits_update", (data) => {
   if ("credits" in data) creditsEl.textContent = data.credits ?? "—";
   if (data.bet != null) betEl.textContent = data.bet;
-  if (debugCardEl && "uid" in data) debugCardEl.textContent = data.uid ?? "keine";
+  if ("uid" in data) {
+    hasActiveCard = data.uid != null;
+    if (hasActiveCard) hideCardDialog();
+    if (debugCardEl) debugCardEl.textContent = data.uid ?? "keine";
+  }
+});
+
+// Einsatz gewechselt (backend/game_state.py: cycle_bet). Nach der höchsten
+// Stufe geht es wieder bei der niedrigsten los - dann wieder Originaltonhöhe.
+socket.on("bet_changed", (data) => {
+  const semitones = data.index * BET_PITCH_SEMITONES_PER_STEP;
+  playSound("bet_up", { playbackRate: 2 ** (semitones / 12) });
+});
+
+function showCardDialog() {
+  if (!cardDialogEl) return;
+  cardDialogEl.classList.add("visible");
+  clearTimeout(cardDialogTimer);
+  cardDialogTimer = setTimeout(hideCardDialog, CARD_DIALOG_MS);
+}
+
+function hideCardDialog() {
+  clearTimeout(cardDialogTimer);
+  cardDialogEl?.classList.remove("visible");
+}
+
+function isCardDialogVisible() {
+  return cardDialogEl?.classList.contains("visible") ?? false;
+}
+
+// Spin-Versuch ohne aktive Karte - kommt auch vom echten Hebel (GPIO), der
+// nicht über das Frontend läuft.
+socket.on("card_required", () => {
+  resetIdleTimer();
+  showCardDialog();
 });
 
 // Kurzer Hinweis über dem Walzenfenster (Karten-Events, "Karte auflegen" etc.).
@@ -112,6 +157,7 @@ function showCardToast(text, variant = "info") {
 // event_media_map.json wird nur der Text-Hinweis gezeigt.
 function onCardEvent(mediaEvent, text) {
   resetIdleTimer();
+  hideCardDialog();
   showCardToast(text);
   if (getEventNames().includes(mediaEvent)) showEvent(mediaEvent);
   playSound(mediaEvent);
@@ -157,6 +203,11 @@ socket.on("error", (data) => {
 
 function pullLever(socketEvent) {
   resetIdleTimer();
+  // Ohne Karte gar nicht erst beim Server anfragen und keine Hebel-Animation.
+  if (!hasActiveCard) {
+    showCardDialog();
+    return;
+  }
   showEvent("lever_pull");
   socket.emit(socketEvent);
 }
@@ -176,6 +227,11 @@ document.addEventListener("keydown", (e) => {
 const stageEl = document.getElementById("stage");
 stageEl?.addEventListener("pointerdown", (e) => {
   // Stage ist per CSS-Transform skaliert -> Klickposition auf 800x480 zurückrechnen.
+  // Offener Karten-Dialog: Tippen schließt ihn nur, statt zu spinnen/Einsatz zu wechseln.
+  if (isCardDialogVisible()) {
+    hideCardDialog();
+    return;
+  }
   const rect = stageEl.getBoundingClientRect();
   const x = ((e.clientX - rect.left) * DISPLAY.width) / rect.width;
   const y = ((e.clientY - rect.top) * DISPLAY.height) / rect.height;

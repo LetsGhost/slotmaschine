@@ -34,6 +34,12 @@
         "hold_ms": 3200,
         "fly_out_ms": 400,
         "position": { "top": 0, "left": 142, "width": 517, "height": 480 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/move_mf_meme.webm",
+        "sound": "move_mf_meme",
+        "position": { "top": 0, "left": 220, "width": 360, "height": 480 }
       }
     ]
   },
@@ -121,6 +127,12 @@
         "hold_ms": 3200,
         "fly_out_ms": 400,
         "position": { "top": 0, "left": 148, "width": 504, "height": 480 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/mrcrabs_laugh.webm",
+        "sound": "mrcrabs_laugh",
+        "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
       }
     ]
   },
@@ -312,6 +324,13 @@
     "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
   },
 
+  "mrcrabs_laugh_demo": {
+    "type": "video",
+    "src": "assets/overlays/mrcrabs_laugh.webm",
+    "sound": "mrcrabs_laugh",
+    "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
+  },
+
   "why_so_serious_demo": {
     "type": "image",
     "src": "assets/overlays/jokijoki.png",
@@ -349,6 +368,13 @@
     "src": "assets/overlays/bouncing_yaris.webm",
     "sound": "bouncing_yaris",
     "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+  },
+
+  "move_mf_meme_demo": {
+    "type": "video",
+    "src": "assets/overlays/move_mf_meme.webm",
+    "sound": "move_mf_meme",
+    "position": { "top": 0, "left": 220, "width": 360, "height": 480 }
   },
 
   "jojo_fade_demo": {
