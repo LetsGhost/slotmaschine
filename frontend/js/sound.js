@@ -68,6 +68,18 @@ const SOUND_FILES = {
   are_ya_lost: "assets/audio/animations/lose/are_ya_lost.mp3",
   // Kopie von results/jackpot/success_omg.mp3 (Einstieg der "deep_fried"-Animation).
   omg: "assets/audio/animations/jackpot/omg.mp3",
+  // Kopie von results/lose/misc_lampe-frankreich.wav (1.6s, "drop_bounce" der Lampe).
+  lampe_frankreich: "assets/audio/animations/lose/lampe_frankreich.wav",
+  // Kopie von results/lose/fail_fahh.mp3 (~1.9s, "pop_scale" mit Domi-Bild).
+  fahh: "assets/audio/animations/lose/fahh.mp3",
+  // Kopie von results/lose/fail_klonk.mp3 (0.4s) - wird per delay_ms auf die
+  // Landung des Steins ("drop_bounce") gelegt.
+  klonk: "assets/audio/animations/lose/klonk.mp3",
+  // Kopie von results/lose/fail_laugh-cat.mp3 (~3.6s, Truhe mit son_charlie.jpg).
+  laugh_cat: "assets/audio/animations/lose/laugh_cat.mp3",
+  // Erste 6s von results/jackpot/misc_don-pollo-salamalekum.mp3, letzte 400ms
+  // ausgeblendet - so lang wie die "party"-Animation mit iltan-sumra.png.
+  salamalekum: "assets/audio/animations/jackpot/salamalekum.mp3",
 };
 
 // Per Web Audio erzeugte Sounds (kein Asset nötig): werden beim Start einmal

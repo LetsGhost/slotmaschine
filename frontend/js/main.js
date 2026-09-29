@@ -45,9 +45,12 @@ const DEBUG_EVENT_CATEGORIES = [
   },
   {
     title: "Gewinn",
-    events: ["mlg_meme_demo", "sybau_flyby_demo", "bouncing_yaris_demo", "jojo_fade_demo", "move_mf_meme_demo", "simpson_meme_demo", "pharaoh_up_demo"],
+    events: ["mlg_meme_demo", "sybau_flyby_demo", "bouncing_yaris_demo", "jojo_fade_demo", "move_mf_meme_demo", "simpson_meme_demo", "pharaoh_up_demo", "heisenburger_demo"],
   },
-  { title: "Jackpot", events: ["gojo_float_demo", "coin_rain_reveal_demo", "monte_dance_demo", "party_demo", "deep_fried_demo"] },
+  {
+    title: "Jackpot",
+    events: ["gojo_float_demo", "coin_rain_reveal_demo", "monte_dance_demo", "party_demo", "deep_fried_demo", "salamalekum_demo"],
+  },
   {
     title: "Verlust",
     events: [
@@ -60,6 +63,10 @@ const DEBUG_EVENT_CATEGORIES = [
       "pharaoh_down_demo",
       "peek_demo",
       "error_spam_demo",
+      "lampe_frankreich_demo",
+      "fahh_demo",
+      "klonk_demo",
+      "son_chest_demo",
     ],
   },
   { title: "Multiplikator", events: ["sniper_count_demo", "case_open_demo", "basti_sieben_demo", "dramatic_zoom_demo"] },

@@ -915,7 +915,8 @@ function runCaseOpen(eventName, camEl, entry, onComplete, context) {
 // Felder (alle optional): duration_ms (Gesamtdauer inkl. Ein-/Ausblenden),
 // fade_in_ms, fade_out_ms, beat_ms (Takt: Scheinwerfer-Wechsel und Puls),
 // flicker_ms (Dauer einer Flacker-Farbe), flicker_opacity (Stärke des
-// Flackerns, 0-1), colors (Farbliste für Flackern und Scheinwerfer).
+// Flackerns, 0-1), colors (Farbliste für Flackern und Scheinwerfer),
+// coin_rain (optionaler Münzregen, siehe startCoinRain).
 const PARTY_COLORS = ["#ff0040", "#00e5ff", "#ffea00", "#00ff6a", "#ff00ea", "#ff7b00", "#3d5afe"];
 
 // Keyframes mit harten Farbwechseln (kein Überblenden) für eine CSS-Eigenschaft.
@@ -948,6 +949,8 @@ function runParty(eventName, el, entry, onComplete) {
   const colors = entry.colors ?? PARTY_COLORS;
   const { width: W, height: H } = DISPLAY;
   const parts = [];
+
+  if (entry.coin_rain) startCoinRain(eventName, entry.coin_rain, Math.max(0, durationMs - fadeOutMs));
 
   // Bunt flackernder Bildschirm hinter dem Bild.
   const flicker = document.createElement("div");
