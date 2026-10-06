@@ -140,18 +140,34 @@ export function isPoolEvent(eventName) {
 // Varianten mit "only_values": [..] kommen nur in Frage, wenn context.value
 // darin enthalten ist - dann konkurrieren sie per "weight" mit allen übrigen
 // Varianten (z.B. eigene Animation für einen x7-Multiplikator).
+// Die zuletzt gezeigte Animation eines Events wird beim nächsten Mal
+// ausgeschlossen (auch doppelte Einträge mit gleichem anim/src), damit nie
+// zweimal direkt hintereinander dasselbe kommt - außer es gibt keine Alternative.
+const lastVariantKey = new Map();
+
+function variantKey(variant) {
+  return variant.anim ?? variant.src;
+}
+
 function pickVariant(eventName, context) {
   let raw = getPool(eventName);
   if (!raw) return mediaMap[eventName];
   raw = raw.filter((v) => !v.only_values || v.only_values.includes(context?.value));
   if (raw.length === 0) return undefined;
+  const fresh = raw.filter((v) => variantKey(v) !== lastVariantKey.get(eventName));
+  if (fresh.length > 0) raw = fresh;
   const total = raw.reduce((sum, v) => sum + (v.weight ?? 1), 0);
   let roll = Math.random() * total;
+  let picked = raw[raw.length - 1];
   for (const variant of raw) {
     roll -= variant.weight ?? 1;
-    if (roll <= 0) return variant;
+    if (roll <= 0) {
+      picked = variant;
+      break;
+    }
   }
-  return raw[raw.length - 1];
+  lastVariantKey.set(eventName, variantKey(picked));
+  return picked;
 }
 
 // options.onComplete (optional): wird genau einmal aufgerufen, sobald dieses
