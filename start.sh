@@ -16,7 +16,7 @@ export SLOT_DEBUG="${SLOT_DEBUG:-0}"
 # Drehung des Bildschirms unter cage (Pi OS Lite): normal, 90, 180 oder 270.
 # Wird hochkant/falsch herum angezeigt -> anderen Wert probieren.
 # Braucht wlr-randr (sudo apt install wlr-randr).
-SLOT_ROTATION="${SLOT_ROTATION:-270}"
+SLOT_ROTATION="${SLOT_ROTATION:-90}"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 URL="http://localhost:5000"
