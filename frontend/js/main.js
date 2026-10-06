@@ -5,7 +5,7 @@ import { preloadSounds, startBackgroundMusic } from "./sound.js";
 import { DISPLAY } from "./config.js";
 import { socket } from "./socket.js";
 
-// Mindestdauer des Ladescreens (Book-of-Ra-Logo) beim Seitenaufruf - rein für
+// Mindestdauer des Ladescreens (Book-of-Rawr-Logo) beim Seitenaufruf - rein für
 // die Optik, auch wenn alle Assets schneller fertig geladen sind.
 const MIN_LOADING_SCREEN_MS = 2500;
 
@@ -99,7 +99,6 @@ const DEBUG_EVENT_CATEGORIES = [
       "among_us_eject_demo",
       "mlg_montage_demo",
       "brainrot_split_demo",
-      "dvd_bounce_demo",
     ],
   },
   { title: "Spin", events: ["sausage_knife_demo"] },

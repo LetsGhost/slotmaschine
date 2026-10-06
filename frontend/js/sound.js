@@ -176,8 +176,6 @@ const SYNTH_SOUNDS = {
   // MLG-Montage: Hitmarker-Klick und Airhorn (3 Stöße).
   hitmarker: { durationS: 0.15, render: renderHitmarker },
   airhorn: { durationS: 1.6, render: renderAirhorn },
-  // Jubel-Arpeggio, wenn das DVD-Logo genau die Ecke trifft.
-  corner: { durationS: 1.4, render: renderCorner },
   // Fallbacks und Effekte für multiplier_anims.js: Halo-Medaillen-Ding,
   // DMC-Klingen-Hieb, Balatro-Mult-Plopp, Scouter-Piepen,
   // Explosion (Scouter platzt), Aura-Aufladen und Gelddrucker-Brummen.
@@ -449,13 +447,6 @@ function renderAirhorn(ctx) {
   ].forEach(([start, duration]) => {
     synthNote(ctx, { freqs: [415, 523, 622, 830], start, duration, type: "sawtooth", peak: 0.7, attack: 0.015, release: 0.08, cutoff: 3200, bend: 1.03 });
   });
-}
-
-function renderCorner(ctx) {
-  [523.3, 659.3, 784, 1046.5].forEach((freq, i) => {
-    synthNote(ctx, { freqs: [freq, freq * 2], start: i * 0.1, duration: 0.9 - i * 0.1, type: "triangle", peak: 0.4, attack: 0.005, release: 0.7 - i * 0.1, cutoff: 8000 });
-  });
-  synthNoise(ctx, { start: 0.35, duration: 1, peak: 0.08, attack: 0.05, release: 0.8, filter: "highpass", freq: 6000 });
 }
 
 // Zwei helle Glockentöne (Quinte), wie das Einblenden einer Halo-Medaille.

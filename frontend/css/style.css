@@ -200,7 +200,8 @@ body.debug-mode #debug-panel {
 }
 
 #loading-logo {
-  width: 380px;
+  /* 840x400-Grafik: so breit, dass sie gleich hoch bleibt wie das alte 612x400-Logo bei 380px */
+  width: 522px;
   max-width: 70%;
   border-radius: 10px;
   box-shadow: 0 0 50px rgba(255, 170, 0, 0.55);

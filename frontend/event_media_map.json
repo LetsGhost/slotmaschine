@@ -928,15 +928,6 @@
     "runner_src": "assets/overlays/sybau_domi.png"
   },
 
-  "dvd_bounce_demo": {
-    "type": "image",
-    "src": "assets/sprites/book_of_rah_logo.jpg",
-    "anim": "dvd_bounce",
-    "aim_corner": true,
-    "duration_ms": 12000,
-    "position": { "top": 0, "left": 0, "width": 184, "height": 120 }
-  },
-
   "anim_pool_demo": [
     {
       "type": "image",
