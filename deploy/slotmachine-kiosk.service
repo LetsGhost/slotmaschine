@@ -11,8 +11,9 @@
 
 [Unit]
 Description=Slotmaschine Kiosk (Backend + Chromium in cage)
-After=systemd-user-sessions.service plymouth-quit-wait.service network-online.target
-Wants=network-online.target
+# Kein network-online.target: Backend und Browser laufen über localhost und
+# brauchen kein WLAN - das Warten darauf verzögert sonst den Start.
+After=systemd-user-sessions.service plymouth-quit-wait.service
 # tty1 gehört dem Kiosk statt der normalen Login-Konsole
 Conflicts=getty@tty1.service
 After=getty@tty1.service
