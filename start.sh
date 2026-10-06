@@ -112,6 +112,9 @@ BROWSER_FLAGS=(
   --incognito
   # Hintergrundmusik ohne vorheriges Tippen starten (siehe frontend/js/sound.js)
   --autoplay-policy=no-user-gesture-required
+  # Kein Übersetzungs-Banner (Seite ist deutsch, Chromium-Oberfläche evtl. englisch)
+  --disable-features=Translate
+  --lang=de
 )
 
 # Nach Stromausfall bleiben Chromiums Profil-Sperrdateien liegen. Bekommt nach
