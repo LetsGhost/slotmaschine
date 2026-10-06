@@ -58,10 +58,9 @@ GPIO_LEVER_ACTIVE_HIGH = True
 # GPIO im Mock-Modus läuft (PC), aus auf dem Pi mit echter Hardware.
 DEBUG_ENV_VAR = "SLOT_DEBUG"
 
-# VORÜBERGEHEND: Tippen auf den Bildschirm löst einen Spin aus (auch mit echter
-# GPIO-Hardware), solange der Hebel noch nicht verbaut ist. Zum Entfernen auf
-# False setzen (oder Handler "tap_pull_lever" in app.py + Listener in
-# frontend/js/socket.js löschen).
+# Tippen aufs Walzenfenster löst einen Spin aus - nur im Debug-Modus (siehe
+# DEBUG_ENV_VAR). Im normalen Betrieb (Pi, SLOT_DEBUG=0) spinnt nur der Hebel.
+# False schaltet Tap-to-Spin auch im Debug-Modus ab.
 TAP_TO_SPIN = True
 
 # NFC-Kartenkonten (siehe accounts.py / nfc_handler.py). Guthaben pro Karten-UID,

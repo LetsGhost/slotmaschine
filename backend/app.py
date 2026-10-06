@@ -1,5 +1,6 @@
 """Flask + SocketIO Setup. Liefert das Frontend aus und verdrahtet GPIO/NFC/State-Machine mit SocketIO."""
 
+import logging
 import os
 
 from flask import Flask, Response, jsonify
@@ -11,6 +12,12 @@ from accounts import AccountManager
 from game_state import GameState
 from gpio_handler import GPIOHandler
 from nfc_handler import NFCHandler
+
+# Info-Meldungen (z.B. ob GPIO/NFC echt oder im Mock-Modus laufen) landen so
+# auf stderr bzw. im Journal (journalctl -u slotmachine-kiosk.service).
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# Werkzeug loggt sonst jeden einzelnen Asset-Request.
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
 
@@ -63,6 +70,12 @@ def _resolve_debug_mode() -> bool:
 
 
 DEBUG_MODE = _resolve_debug_mode()
+logging.getLogger(__name__).info(
+    "Debug-Modus: %s | GPIO: %s | NFC: %s",
+    "an" if DEBUG_MODE else "aus",
+    "Mock" if gpio.is_mock else "echt",
+    "Mock" if nfc.is_mock else "echt",
+)
 
 
 @app.route("/")
@@ -101,8 +114,8 @@ def audio_pools():
 
 @app.route("/debug/pull", methods=["POST"])
 def debug_pull():
-    if not gpio.is_mock:
-        return jsonify({"error": "GPIO ist aktiv, Debug-Route deaktiviert"}), 403
+    if not (DEBUG_MODE and gpio.is_mock):
+        return jsonify({"error": "Nur im Debug-Modus mit GPIO-Mock"}), 403
     gpio.trigger_mock()
     return jsonify({"ok": True})
 
@@ -123,8 +136,8 @@ def debug_accounts():
 
 @app.route("/debug/nfc/<uid>", methods=["POST"])
 def debug_nfc_scan_route(uid):
-    if not nfc.is_mock:
-        return jsonify({"error": "NFC-Reader ist aktiv, Debug-Route deaktiviert"}), 403
+    if not (DEBUG_MODE and nfc.is_mock):
+        return jsonify({"error": "Nur im Debug-Modus mit NFC-Mock"}), 403
     nfc.trigger_mock(uid.upper())
     return jsonify({"ok": True, "active_uid": account_manager.active_uid, "credits": account_manager.get_active_credits()})
 
@@ -138,14 +151,15 @@ def handle_connect():
 
 @socketio.on("debug_pull_lever")
 def handle_debug_pull_lever():
-    if gpio.is_mock:
+    if DEBUG_MODE and gpio.is_mock:
         gpio.trigger_mock()
 
 
-# VORÜBERGEHEND: Spin per Bildschirm-Tipp (siehe config.TAP_TO_SPIN).
+# Spin per Bildschirm-Tipp - nur im Debug-Modus (siehe config.TAP_TO_SPIN).
+# Im normalen Betrieb läuft ein Spin ausschließlich über den Hebel (GPIO).
 @socketio.on("tap_pull_lever")
 def handle_tap_pull_lever():
-    if config.TAP_TO_SPIN:
+    if config.TAP_TO_SPIN and DEBUG_MODE:
         game.pull_lever()
 
 
@@ -156,7 +170,7 @@ def handle_cycle_bet():
 
 @socketio.on("debug_add_credits")
 def handle_debug_add_credits(data=None):
-    if not gpio.is_mock:
+    if not (DEBUG_MODE and gpio.is_mock):
         return
     uid = account_manager.active_uid
     if uid is None:
@@ -170,7 +184,7 @@ def handle_debug_add_credits(data=None):
 @socketio.on("debug_nfc_scan")
 def handle_debug_nfc_scan(data=None):
     uid = str((data or {}).get("uid", "")).strip().upper()
-    if nfc.is_mock and uid:
+    if DEBUG_MODE and nfc.is_mock and uid:
         nfc.trigger_mock(uid)
 
 
@@ -182,7 +196,7 @@ def handle_debug_accounts():
 
 @socketio.on("debug_set_multiplier_chance")
 def handle_debug_set_multiplier_chance(data=None):
-    if not gpio.is_mock:
+    if not (DEBUG_MODE and gpio.is_mock):
         return
     chance = max(0.0, min(1.0, float((data or {}).get("chance", 0))))
     reels.set_debug_multiplier_chance(chance)

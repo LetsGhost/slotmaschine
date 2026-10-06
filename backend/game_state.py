@@ -3,6 +3,7 @@
 Jede Zustandsänderung ruft den emit-Callback auf, den app.py an SocketIO bindet.
 """
 
+import logging
 import threading
 from enum import Enum, auto
 from typing import Callable
@@ -20,6 +21,8 @@ class State(Enum):
 
 
 EmitCallback = Callable[[str, dict], None]
+
+logger = logging.getLogger(__name__)
 
 
 class GameState:
@@ -82,6 +85,31 @@ class GameState:
         self._timer.start()
 
     def _on_spin_complete(self) -> None:
+        # Läuft im Timer-Thread: Eine Exception darf den Zustand nicht auf
+        # SPINNING/EVALUATING hängen lassen, sonst ist kein Spin mehr möglich.
+        try:
+            self._evaluate_and_pay()
+        except Exception:
+            logger.exception("Fehler beim Auswerten des Spins")
+            self._refund_after_error()
+        finally:
+            if self.state != State.IDLE:
+                self._set_state(State.IDLE)
+
+    def _refund_after_error(self) -> None:
+        # Nur erstatten, wenn der Gewinn noch nicht gutgeschrieben wurde.
+        if self.state == State.PAYOUT or self._spin_uid is None:
+            return
+        try:
+            # Frontend hält damit die noch drehenden Walzen an (socket.js).
+            self.emit("spin_aborted", {"reels": self._pending_result})
+            self.accounts.add(self._spin_uid, self._spin_bet)
+            self._emit_credits(self._spin_uid)
+            self.emit("error", {"message": "Fehler beim Spin - Einsatz wurde erstattet"})
+        except Exception:
+            logger.exception("Einsatz konnte nach Fehler nicht erstattet werden")
+
+    def _evaluate_and_pay(self) -> None:
         self._set_state(State.EVALUATING)
         winning_lines = evaluate_lines(self._pending_result, self._pending_multipliers)
         for line in winning_lines:
