@@ -6,7 +6,9 @@
 #   sudo cp deploy/slotmachine-kiosk.service /etc/systemd/system/
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now slotmachine-kiosk.service
-# Logs:   journalctl -u slotmachine-kiosk.service -f
+# Logs:   sudo journalctl -t slotmaschine -f
+#   (nicht -u: PAMName=login verschiebt die Prozesse in eine eigene Login-Sitzung,
+#   deren Ausgaben stehen dann nicht mehr unter dem Service-Namen)
 # Stoppen: sudo systemctl stop slotmachine-kiosk.service
 
 [Unit]
@@ -38,6 +40,7 @@ TTYVTDisallocate=yes
 StandardInput=tty-fail
 StandardOutput=journal
 StandardError=journal
+SyslogIdentifier=slotmaschine
 UtmpIdentifier=tty1
 UtmpMode=user
 

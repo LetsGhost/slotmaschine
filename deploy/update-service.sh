@@ -18,4 +18,4 @@ sudo systemctl enable "$SERVICE" "$TOUCH_SERVICE"
 sudo systemctl start "$TOUCH_SERVICE" || true
 sudo systemctl restart "$SERVICE"
 
-echo "Neu gestartet. Logs: journalctl -u $SERVICE -f"
+echo "Neu gestartet. Logs: sudo journalctl -t slotmaschine -f"

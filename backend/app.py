@@ -14,7 +14,7 @@ from gpio_handler import GPIOHandler
 from nfc_handler import NFCHandler
 
 # Info-Meldungen (z.B. ob GPIO/NFC echt oder im Mock-Modus laufen) landen so
-# auf stderr bzw. im Journal (journalctl -u slotmachine-kiosk.service).
+# auf stderr bzw. im Journal (sudo journalctl -t slotmaschine).
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 # Werkzeug loggt sonst jeden einzelnen Asset-Request.
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
