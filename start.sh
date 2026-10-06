@@ -25,13 +25,17 @@ PYTHON="$([ -x "$VENV_PY" ] && echo "$VENV_PY" || echo "python3")"
 
 # Mauszeiger ausblenden: cage (und Chromium) zeichnen den Zeiger selbst, CSS
 # "cursor: none" hilft bei reinem Touch-Betrieb nicht. Daher ein unsichtbares
-# Cursor-Theme erzeugen und per XCURSOR_THEME aktivieren. Standard: an (auch im
-# Debug-Modus - am Pi gibt es keine Maus). Abschaltbar mit SLOT_HIDE_CURSOR=0.
+# Cursor-Theme erzeugen. cage 0.2 ignoriert XCURSOR_THEME und lädt immer das
+# Theme "default" - deshalb liegt es zusätzlich als "default" im Nutzer-
+# Icon-Ordner, der in XCURSOR_PATH vor /usr/share/icons steht. Standard: an
+# (auch im Debug-Modus - am Pi gibt es keine Maus). Abschaltbar mit SLOT_HIDE_CURSOR=0.
 SLOT_HIDE_CURSOR="${SLOT_HIDE_CURSOR:-1}"
+CURSOR_ICONS_DIR="$HOME/.local/share/icons"
+CURSOR_DEFAULT_DIR="$CURSOR_ICONS_DIR/default"
 if [ "$SLOT_HIDE_CURSOR" = "1" ]; then
-  CURSOR_ICONS_DIR="$HOME/.local/share/icons"
-  if "$PYTHON" "$DIR/deploy/make_invisible_cursor.py" "$CURSOR_ICONS_DIR/slot-invisible"; then
-    echo "Mauszeiger ausgeblendet (Cursor-Theme slot-invisible)."
+  if "$PYTHON" "$DIR/deploy/make_invisible_cursor.py" "$CURSOR_ICONS_DIR/slot-invisible" \
+    && "$PYTHON" "$DIR/deploy/make_invisible_cursor.py" "$CURSOR_DEFAULT_DIR"; then
+    echo "Mauszeiger ausgeblendet (Cursor-Theme slot-invisible + default)."
     export XCURSOR_THEME=slot-invisible
     export XCURSOR_SIZE=24
     export XCURSOR_PATH="$CURSOR_ICONS_DIR:$HOME/.icons:/usr/share/icons:/usr/share/pixmaps"
@@ -41,6 +45,10 @@ if [ "$SLOT_HIDE_CURSOR" = "1" ]; then
   else
     echo "Unsichtbares Cursor-Theme konnte nicht erzeugt werden - Zeiger bleibt sichtbar." >&2
   fi
+elif grep -qs "Name=slot-invisible" "$CURSOR_DEFAULT_DIR/index.theme"; then
+  # Zeiger wieder einblenden: nur das von uns angelegte "default"-Theme entfernen.
+  rm -rf "$CURSOR_DEFAULT_DIR"
+  echo "Mauszeiger sichtbar (unsichtbares default-Theme entfernt)."
 fi
 
 # Neustart-Überwachung: Meldet das Frontend nicht innerhalb dieser Zeit, dass es
