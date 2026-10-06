@@ -51,7 +51,7 @@ Das Script braucht eine aktive Konsolen-Session auf dem Pi, per SSH oder mit
 Service aus `deploy/slotmachine-kiosk.service` einrichten, Anleitung steht in
 der Datei.
 Die Bildschirm-Drehung steuert `SLOT_ROTATION` (`normal`, `90`, `180`,
-`270`; Standard `270`, im Service als `Environment=` gesetzt, braucht
+`270`; Standard `90`, einstellbar oben in `start.sh`, braucht
 `sudo apt install wlr-randr`).
 
 **Touch-Fix (DSI-Display):** Der Goodix-Touch-Chip des Displays ist beim
