@@ -3,7 +3,7 @@ import { loadEventMediaMap, showEvent, showEventSequence, showMultiplierCombo, g
 import { loadMultiplierConfig } from "./multipliers.js";
 import { preloadSounds, startBackgroundMusic } from "./sound.js";
 import { DISPLAY } from "./config.js";
-import "./socket.js";
+import { socket } from "./socket.js";
 
 // Mindestdauer des Ladescreens (Book-of-Ra-Logo) beim Seitenaufruf - rein für
 // die Optik, auch wenn alle Assets schneller fertig geladen sind.
@@ -216,6 +216,15 @@ async function bootstrap() {
   }
   hideLoadingScreen();
   startBackgroundMusic();
+  reportFrontendReady();
+}
+
+// Meldet dem Backend, dass die Seite wirklich auf dem Bildschirm angekommen ist
+// (start.sh startet den Kiosk neu, wenn das nach dem Booten ausbleibt).
+// requestAnimationFrame feuert nur, wenn der Compositor tatsächlich Frames
+// anzeigt - hängt das Display (weißer Bildschirm), kommt die Meldung nie.
+function reportFrontendReady() {
+  requestAnimationFrame(() => requestAnimationFrame(() => socket.emit("frontend_ready")));
 }
 
 bootstrap();

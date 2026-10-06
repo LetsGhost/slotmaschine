@@ -120,6 +120,25 @@ def debug_pull():
     return jsonify({"ok": True})
 
 
+# Zeitpunkt, zu dem das Frontend gemeldet hat, dass es fertig geladen und auf
+# dem Bildschirm sichtbar ist (main.js: reportFrontendReady). start.sh fragt das
+# über /health ab und startet den Kiosk neu, wenn es nach dem Booten ausbleibt.
+frontend_ready = False
+
+
+@socketio.on("frontend_ready")
+def handle_frontend_ready():
+    global frontend_ready
+    if not frontend_ready:
+        logging.getLogger(__name__).info("Frontend geladen und sichtbar")
+    frontend_ready = True
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"frontend_ready": frontend_ready})
+
+
 @app.route("/state", methods=["GET"])
 def get_state():
     return jsonify(
