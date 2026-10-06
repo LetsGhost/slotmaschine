@@ -29,7 +29,7 @@ export const SYMBOL_ASSETS = {
   lemon: "assets/overlays/lampe_frankreich.webp",
   bell: "assets/overlays/stone-transparent-background-free-png-15599445.png",
   star: "assets/frame/buch.png",
-  seven: "assets/sprites/seven.png",
+  seven: "assets/overlays/smug_cat.jpg",
 };
 
 export const SYMBOLS = Object.keys(SYMBOL_ASSETS);

@@ -344,16 +344,6 @@
     ]
   },
 
-  "lever_pull": {
-    "anim_pool": [
-      {
-        "type": "image",
-        "src": "assets/overlays/lever_flash.png",
-        "duration_ms": 300
-      }
-    ]
-  },
-
   "spin_animation": {
     "anim_pool": [
       {
@@ -427,6 +417,7 @@
         "type": "text",
         "text": "7",
         "only_values": [7],
+        "weight": 5,
         "sound": "basti_sieben",
         "anim": "pop_scale",
         "fly_in_ms": 400,

@@ -138,13 +138,12 @@ export function isPoolEvent(eventName) {
 }
 
 // Varianten mit "only_values": [..] kommen nur in Frage, wenn context.value
-// darin enthalten ist - und haben dann Vorrang vor allen anderen Varianten
-// (z.B. eigene Animation für einen x7-Multiplikator).
+// darin enthalten ist - dann konkurrieren sie per "weight" mit allen übrigen
+// Varianten (z.B. eigene Animation für einen x7-Multiplikator).
 function pickVariant(eventName, context) {
   let raw = getPool(eventName);
   if (!raw) return mediaMap[eventName];
-  const matching = raw.filter((v) => v.only_values?.includes(context?.value));
-  raw = matching.length > 0 ? matching : raw.filter((v) => !v.only_values);
+  raw = raw.filter((v) => !v.only_values || v.only_values.includes(context?.value));
   if (raw.length === 0) return undefined;
   const total = raw.reduce((sum, v) => sum + (v.weight ?? 1), 0);
   let roll = Math.random() * total;

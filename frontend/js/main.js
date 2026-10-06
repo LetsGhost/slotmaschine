@@ -41,7 +41,7 @@ if (!DEBUG_MODE) {
 const DEBUG_EVENT_CATEGORIES = [
   {
     title: "Spiel-Events (Pool)",
-    events: ["win_small", "win_jackpot", "lose", "multiplier_hit", "multiplier_combo", "spin_animation", "lever_pull", "idle_attract"],
+    events: ["win_small", "win_jackpot", "lose", "multiplier_hit", "multiplier_combo", "spin_animation", "idle_attract"],
   },
   {
     title: "Gewinn",

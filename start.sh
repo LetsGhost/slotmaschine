@@ -23,6 +23,26 @@ URL="http://localhost:5000"
 VENV_PY="$DIR/venv/bin/python"
 PYTHON="$([ -x "$VENV_PY" ] && echo "$VENV_PY" || echo "python3")"
 
+# Mauszeiger ausblenden: cage (und Chromium) zeichnen den Zeiger selbst, CSS
+# "cursor: none" hilft bei reinem Touch-Betrieb nicht. Daher ein unsichtbares
+# Cursor-Theme erzeugen und per XCURSOR_THEME aktivieren. Standard: aus im
+# Debug-Modus, sonst an. Überschreibbar mit SLOT_HIDE_CURSOR=0/1.
+if [ "$SLOT_DEBUG" = "1" ]; then
+  SLOT_HIDE_CURSOR="${SLOT_HIDE_CURSOR:-0}"
+else
+  SLOT_HIDE_CURSOR="${SLOT_HIDE_CURSOR:-1}"
+fi
+if [ "$SLOT_HIDE_CURSOR" = "1" ]; then
+  CURSOR_ICONS_DIR="$HOME/.local/share/icons"
+  if "$PYTHON" "$DIR/deploy/make_invisible_cursor.py" "$CURSOR_ICONS_DIR/slot-invisible"; then
+    export XCURSOR_THEME=slot-invisible
+    export XCURSOR_SIZE=24
+    export XCURSOR_PATH="$CURSOR_ICONS_DIR:$HOME/.icons:/usr/share/icons:/usr/share/pixmaps"
+  else
+    echo "Unsichtbares Cursor-Theme konnte nicht erzeugt werden - Zeiger bleibt sichtbar." >&2
+  fi
+fi
+
 # Server im Hintergrund starten
 "$PYTHON" "$DIR/backend/app.py" &
 SERVER_PID=$!
@@ -59,6 +79,8 @@ BROWSER_FLAGS=(
   --no-first-run
   --password-store=basic
   --incognito
+  # Hintergrundmusik ohne vorheriges Tippen starten (siehe frontend/js/sound.js)
+  --autoplay-policy=no-user-gesture-required
 )
 
 if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then

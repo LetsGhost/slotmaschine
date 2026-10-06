@@ -199,6 +199,14 @@ socket.on("debug_multiplier_chance_update", (data) => {
   multiplierChanceValueEl.textContent = `${percent}%`;
 });
 
+// Backend konnte den Spin nicht auswerten (game_state.py: _refund_after_error) -
+// Walzen auf dem gewürfelten Ergebnis anhalten, Einsatz kommt per credits_update zurück.
+socket.on("spin_aborted", (data) => {
+  clearEvent("spin_animation");
+  stopLoop("spin");
+  stopOnSymbol(data.reels);
+});
+
 socket.on("error", (data) => {
   console.warn("Server error:", data.message);
   showCardToast(data.message, "error");
@@ -211,7 +219,8 @@ function pullLever(socketEvent) {
     showCardDialog();
     return;
   }
-  showEvent("lever_pull");
+  // Optionales Overlay - nur zeigen, wenn event_media_map.json einen Eintrag hat.
+  if (getEventNames().includes("lever_pull")) showEvent("lever_pull");
   socket.emit(socketEvent);
 }
 
@@ -223,10 +232,10 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Tippen/Klicken auf die Stage: innerhalb des Walzenfensters (inkl. Goldrahmen,
-// SPIN_TAP_AREA) löst einen Spin aus - VORÜBERGEHEND, solange der Hebel noch
-// nicht verbaut ist (serverseitig abschaltbar über config.TAP_TO_SPIN in
-// backend/config.py). Überall sonst (blauer Rahmen mit Guthaben/Einsatz/Gewinn)
-// schaltet zur nächsten Einsatzstufe (config.BET_STEPS).
+// SPIN_TAP_AREA) löst nur im Debug-Modus einen Spin aus (serverseitig zusätzlich
+// über config.TAP_TO_SPIN in backend/config.py), im normalen Betrieb spinnt nur
+// der Hebel und der Tipp dort bewirkt nichts. Überall sonst (blauer Rahmen mit
+// Guthaben/Einsatz/Gewinn) schaltet zur nächsten Einsatzstufe (config.BET_STEPS).
 const stageEl = document.getElementById("stage");
 stageEl?.addEventListener("pointerdown", (e) => {
   // Stage ist per CSS-Transform skaliert -> Klickposition auf 800x480 zurückrechnen.
@@ -240,7 +249,7 @@ stageEl?.addEventListener("pointerdown", (e) => {
   const y = ((e.clientY - rect.top) * DISPLAY.height) / rect.height;
   const a = SPIN_TAP_AREA;
   if (x >= a.left && x < a.left + a.width && y >= a.top && y < a.top + a.height) {
-    pullLever("tap_pull_lever");
+    if (document.body.classList.contains("debug-mode")) pullLever("tap_pull_lever");
   } else {
     resetIdleTimer();
     socket.emit("cycle_bet");
