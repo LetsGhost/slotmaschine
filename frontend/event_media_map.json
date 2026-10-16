@@ -48,6 +48,12 @@
         "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
       },
       {
+        "type": "video",
+        "src": "assets/overlays/putin_walk.webm",
+        "sound": "putin_walk",
+        "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+      },
+      {
         "type": "image",
         "src": "assets/overlays/egypt_oleg.png",
         "anim": "pharaoh_verdict",
@@ -218,6 +224,12 @@
         "type": "video",
         "src": "assets/overlays/mrcrabs_laugh.webm",
         "sound": "mrcrabs_laugh",
+        "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
+      },
+      {
+        "type": "video",
+        "src": "assets/overlays/yakuza_leave.webm",
+        "sound": "yakuza_leave",
         "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
       },
       {
@@ -557,6 +569,13 @@
     "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
   },
 
+  "yakuza_leave_demo": {
+    "type": "video",
+    "src": "assets/overlays/yakuza_leave.webm",
+    "sound": "yakuza_leave",
+    "position": { "top": 0, "left": 160, "width": 480, "height": 480 }
+  },
+
   "why_so_serious_demo": {
     "type": "image",
     "src": "assets/overlays/jokijoki.png",
@@ -607,6 +626,13 @@
     "type": "video",
     "src": "assets/overlays/simpson_meme.webm",
     "sound": "simpson_meme",
+    "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
+  },
+
+  "putin_walk_demo": {
+    "type": "video",
+    "src": "assets/overlays/putin_walk.webm",
+    "sound": "putin_walk",
     "position": { "top": 0, "left": 0, "width": 800, "height": 480 }
   },
 

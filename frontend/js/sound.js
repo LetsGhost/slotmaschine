@@ -31,6 +31,8 @@ const SOUND_FILES = {
   cursed_plankton: "assets/audio/animations/lose/cursed_plankton.mp3",
   // Tonspur von mrcrabs_laugh.webm (Original in assets_originals/overlays).
   mrcrabs_laugh: "assets/audio/animations/lose/mrcrabs_laugh.mp3",
+  // Tonspur von yakuza_leave.webm (erste 8.7s, Original in assets_originals/overlays).
+  yakuza_leave: "assets/audio/animations/lose/yakuza_leave.mp3",
   // Erste 4s von why_so_seroius_audio.wav (Original in assets_originals/audio),
   // so lang wie die "fade"-Einblendung von jokijoki.png.
   why_so_serious: "assets/audio/animations/lose/why_so_serious.mp3",
@@ -42,6 +44,9 @@ const SOUND_FILES = {
   move_mf_meme: "assets/audio/animations/win/move_mf_meme.mp3",
   // Tonspur von simpson_meme.webm (Original in assets_originals/overlays).
   simpson_meme: "assets/audio/animations/win/simpson_meme.mp3",
+  // Tonspur von putin_walk.webm (Sek. 1-10 des Originals in assets_originals/overlays),
+  // letzte 500ms ausgeblendet.
+  putin_walk: "assets/audio/animations/win/putin_walk.mp3",
   // ~4s, so lang wie die "fade"-Einblendung von jojo.jpg.
   jojo_leduledu: "assets/audio/animations/win/misc_jojo_leduledu.mp3",
   // Sek. 31.23-35.23 aus "Blade x Into The Void" (Original in

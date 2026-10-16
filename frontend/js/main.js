@@ -45,7 +45,7 @@ const DEBUG_EVENT_CATEGORIES = [
   },
   {
     title: "Gewinn",
-    events: ["mlg_meme_demo", "sybau_flyby_demo", "bouncing_yaris_demo", "jojo_fade_demo", "move_mf_meme_demo", "simpson_meme_demo", "pharaoh_up_demo", "heisenburger_demo"],
+    events: ["mlg_meme_demo", "sybau_flyby_demo", "bouncing_yaris_demo", "jojo_fade_demo", "move_mf_meme_demo", "simpson_meme_demo", "putin_walk_demo", "pharaoh_up_demo", "heisenburger_demo"],
   },
   {
     title: "Jackpot",
@@ -58,6 +58,7 @@ const DEBUG_EVENT_CATEGORIES = [
       "why_so_serious_demo",
       "chest_reveal_demo",
       "mrcrabs_laugh_demo",
+      "yakuza_leave_demo",
       "lobotomy_zoom_demo",
       "vine_boom_demo",
       "pharaoh_down_demo",
