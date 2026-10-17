@@ -160,19 +160,21 @@ if [ -n "${SLOT_CHROMIUM_FLAGS:-}" ]; then
   echo "Zusätzliche Chromium-Flags: $SLOT_CHROMIUM_FLAGS"
 fi
 
-# Notlauf: Stürzt Chromium wiederholt ab (meist GPU-/Treiberproblem), ohne
-# GPU-Beschleunigung starten - lieber ruckeliger als gar kein Bild.
-if [ "$failed_starts" -ge 2 ]; then
-  echo "Chromium ist ${failed_starts}x abgestürzt - starte ohne GPU (--disable-gpu)." >&2
-  BROWSER_FLAGS+=(--disable-gpu)
+# Eigenes Chromium-Profil nur für den Kiosk. Ein Stromausfall kann Dateien wie
+# "Local State" halb geschrieben zurücklassen - Chromium stürzt dann direkt
+# beim Start ab (Exit 139), ohne etwas zu loggen. Das Profil enthält nichts
+# Wichtiges (--incognito), daher nach wiederholten Abstürzen einfach neu anlegen.
+PROFILE_DIR="$HOME/.cache/slotmachine-chromium"
+if [ "$failed_starts" -ge 2 ] && [ -d "$PROFILE_DIR" ]; then
+  echo "Chromium ist ${failed_starts}x abgestürzt - setze Kiosk-Profil zurück." >&2
+  rm -rf "$PROFILE_DIR"
 fi
+BROWSER_FLAGS+=(--user-data-dir="$PROFILE_DIR")
 
 # Nach Stromausfall bleiben Chromiums Profil-Sperrdateien liegen. Bekommt nach
 # dem Booten ein anderer Prozess dieselbe PID, hält Chromium das Profil für
 # belegt und startet nicht richtig. Es läuft hier immer nur ein Chromium.
-for profile in "$HOME/.config/chromium" "$HOME/.config/google-chrome"; do
-  rm -f "$profile/SingletonLock" "$profile/SingletonSocket" "$profile/SingletonCookie"
-done
+rm -f "$PROFILE_DIR/SingletonLock" "$PROFILE_DIR/SingletonSocket" "$PROFILE_DIR/SingletonCookie"
 
 # Wartet, bis der Grafiktreiber einen angeschlossenen Bildschirm meldet. Nach
 # einem Kaltstart ist das DSI-Display manchmal noch nicht bereit, wenn cage
