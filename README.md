@@ -129,8 +129,8 @@ Platzhalter (graue Kacheln mit Symbolnamen als Text, keine Sounds). Das
 Spiel ist damit voll funktionsfähig testbar, sieht/klingt aber erst nach
 Phase 3 (Assets) wie eine echte Slotmaschine.
 
-Beim Laden der Seite erscheint kurz ein Ladescreen mit dem Book-of-Ra-Logo
-(`frontend/assets/sprites/book_of_rah_logo.jpg`) samt Spinner, mindestens
+Beim Laden der Seite erscheint kurz ein Ladescreen mit dem Book-of-Rawr-Logo
+(`frontend/assets/sprites/book_of_rawr_logo.jpg`) samt Spinner, mindestens
 `MIN_LOADING_SCREEN_MS` (Default 2500ms, `frontend/js/main.js`) lang - auch
 wenn alle Assets schneller fertig geladen sind. Danach blendet er sanft aus.
 
