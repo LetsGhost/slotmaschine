@@ -1,0 +1,5 @@
+# Erlaubt dem Kiosk-User (siehe User= in slotmachine-kiosk.service), den Pi per
+# Admin-Karte ohne Passwort herunterzufahren bzw. neu zu starten
+# (backend/power_menu.py) - und nur das.
+# Installiert deploy/update-service.sh nach /etc/sudoers.d/slotmachine-power.
+admin ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff, /usr/bin/systemctl reboot

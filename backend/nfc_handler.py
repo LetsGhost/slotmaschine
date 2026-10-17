@@ -26,7 +26,12 @@ class CardDebouncer:
     def __init__(self, debounce_sec: float = config.NFC_DEBOUNCE_SEC):
         self.debounce_sec = debounce_sec
         self.present_uid: str | None = None
+        self.present_since = 0.0
         self.last_seen = 0.0
+
+    def held_sec(self) -> float:
+        """Wie lange die aktuell aufliegende Karte schon (durchgehend) erkannt wird."""
+        return self.last_seen - self.present_since if self.present_uid else 0.0
 
     def feed(self, uid: str | None, now: float) -> str | None:
         """Gibt die UID zurück, wenn dieser Poll als neues Auflegen zählt, sonst None."""
@@ -38,6 +43,7 @@ class CardDebouncer:
             self.last_seen = now
             return None
         self.present_uid = uid
+        self.present_since = now
         self.last_seen = now
         return uid
 
@@ -47,8 +53,11 @@ def format_uid(raw: bytes | bytearray) -> str:
 
 
 class NFCHandler:
-    def __init__(self, on_scan: Callable[[str], None]):
+    def __init__(self, on_scan: Callable[[str], None], on_hold: Callable[[str, float], None] | None = None):
         self.on_scan = on_scan
+        # Wird bei jedem Poll aufgerufen, solange eine schon gemeldete Karte
+        # liegen bleibt: (uid, Sekunden seit Auflegen) - für "Karte halten".
+        self.on_hold = on_hold
         self._mock = False
         self.pn532 = None
         self._thread: threading.Thread | None = None
@@ -91,6 +100,8 @@ class NFCHandler:
                 uid = debouncer.feed(self._read_uid(), time.monotonic())
                 if uid:
                     self.on_scan(uid)
+                elif debouncer.present_uid and self.on_hold:
+                    self.on_hold(debouncer.present_uid, debouncer.held_sec())
             except Exception:
                 # Ein I2C-Hänger darf den Poll-Thread nicht dauerhaft beenden.
                 logger.exception("Fehler beim Lesen des NFC-Readers")
@@ -100,3 +111,7 @@ class NFCHandler:
     def trigger_mock(self, uid: str) -> None:
         if self._mock:
             self.on_scan(uid)
+
+    def trigger_mock_hold(self, uid: str, held_sec: float) -> None:
+        if self._mock and self.on_hold:
+            self.on_hold(uid, held_sec)

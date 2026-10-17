@@ -37,6 +37,10 @@ CURSOR_THEMES=(slot-invisible default Adwaita)
 if [ "$SLOT_HIDE_CURSOR" = "1" ]; then
   cursor_ok=1
   for theme in "${CURSOR_THEMES[@]}"; do
+    # Schon vorhanden -> Python-Start sparen (macht auf dem Pi ~1s pro Aufruf aus)
+    if grep -qs "Name=slot-invisible" "$CURSOR_ICONS_DIR/$theme/index.theme"; then
+      continue
+    fi
     "$PYTHON" "$DIR/deploy/make_invisible_cursor.py" "$CURSOR_ICONS_DIR/$theme" || cursor_ok=0
   done
   if [ "$cursor_ok" = "1" ]; then
@@ -68,17 +72,45 @@ READY_TIMEOUT_SEC="${SLOT_READY_TIMEOUT_SEC:-90}"
 # Solange maximal auf das Display (DRM-Ausgang "connected") warten, bevor cage startet.
 DISPLAY_WAIT_SEC="${SLOT_DISPLAY_WAIT_SEC:-30}"
 
+# Absturzschleifen bremsen: Endet ein Start, bevor das Frontend sichtbar war,
+# wird das hier mitgezählt und der nächste Start wartet länger (5s, 10s, ...
+# max. 60s). Sonst startet systemd alle paar Sekunden neu und das Journal läuft
+# voll, ohne dass man den Fehler sieht. Ein erfolgreicher Start setzt zurück.
+FAIL_FILE="/tmp/slotmachine-failed-starts"
+failed_starts="$(cat "$FAIL_FILE" 2>/dev/null || echo 0)"
+case "$failed_starts" in ''|*[!0-9]*) failed_starts=0 ;; esac
+if [ "$failed_starts" -gt 0 ]; then
+  delay=$((failed_starts * 5))
+  [ "$delay" -gt 60 ] && delay=60
+  echo "Letzte $failed_starts Start(s) fehlgeschlagen - warte ${delay}s vor dem nächsten Versuch."
+  sleep "$delay"
+fi
+
+# Reste eines vorherigen Laufs beenden: Läuft noch ein altes Chromium, gibt ein
+# neues die URL nur an dieses weiter und beendet sich sofort -> cage endet ->
+# Neustart-Schleife. Ebenso blockiert ein altes Backend Port 5000.
+pkill -u "$(id -u)" -x cage 2>/dev/null || true
+pkill -u "$(id -u)" -f -- "--kiosk.*localhost:5000" 2>/dev/null || true
+pkill -u "$(id -u)" -f -- "$DIR/backend/app.py" 2>/dev/null || true
+
 # Server im Hintergrund starten
 "$PYTHON" "$DIR/backend/app.py" &
 SERVER_PID=$!
 BROWSER_PID=""
+ready=0
+stopping=0
 
 # Beim Beenden des Scripts (Strg+C, Browser zu, Fehler etc.) Browser und Server mit stoppen
 cleanup() {
   [ -n "$BROWSER_PID" ] && kill "$BROWSER_PID" 2>/dev/null || true
   kill "$SERVER_PID" 2>/dev/null || true
+  # Gewolltes Stoppen (systemctl stop/restart) zählt nicht als Fehlstart
+  if [ "$ready" -eq 0 ] && [ "$stopping" -eq 0 ]; then
+    echo $((failed_starts + 1)) > "$FAIL_FILE" 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT
+trap 'stopping=1; exit 143' TERM INT
 
 # Warten, bis der Server erreichbar ist
 echo "Warte auf Server unter $URL ..."
@@ -87,7 +119,7 @@ until curl -s -o /dev/null "$URL"; do
     echo "Backend ist beim Start abgestürzt." >&2
     exit 1
   fi
-  sleep 0.5
+  sleep 0.2
 done
 
 # Browser passend zur verfügbaren Installation im Kiosk-/Vollbildmodus öffnen
@@ -115,6 +147,9 @@ BROWSER_FLAGS=(
   # Kein Übersetzungs-Banner (Seite ist deutsch, Chromium-Oberfläche evtl. englisch)
   --disable-features=Translate
   --lang=de
+  # Chromium-Fehler (GPU, Wayland, Profil) im Journal sichtbar machen
+  --enable-logging=stderr
+  --log-level=2
 )
 
 # Nach Stromausfall bleiben Chromiums Profil-Sperrdateien liegen. Bekommt nach
@@ -178,10 +213,13 @@ fi
 # abgestürzt oder Frontend nach READY_TIMEOUT_SEC nicht sichtbar -> Exit mit
 # Fehler, systemd startet alles neu.
 started=$SECONDS
-ready=0
 while true; do
   if ! kill -0 "$BROWSER_PID" 2>/dev/null; then
-    wait "$BROWSER_PID" && exit 0 || exit $?
+    status=0
+    wait "$BROWSER_PID" || status=$?
+    echo "Browser/cage nach $((SECONDS - started))s beendet (Exit-Code $status) - Neustart." >&2
+    # Auch Exit 0 ist hier ein Fehler: Im Kiosk soll der Browser nie zugehen.
+    exit "$([ "$status" -eq 0 ] && echo 1 || echo "$status")"
   fi
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then
     echo "Backend ist abgestürzt - Neustart." >&2
@@ -190,6 +228,7 @@ while true; do
   if [ "$ready" -eq 0 ]; then
     if curl -s "$URL/health" | grep -q '"frontend_ready": *true'; then
       ready=1
+      rm -f "$FAIL_FILE"
       echo "Frontend nach $((SECONDS - started))s sichtbar."
     elif [ $((SECONDS - started)) -ge "$READY_TIMEOUT_SEC" ]; then
       echo "Frontend nach ${READY_TIMEOUT_SEC}s nicht sichtbar (weißer Bildschirm?) - Neustart." >&2

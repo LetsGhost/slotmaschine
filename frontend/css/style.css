@@ -235,7 +235,8 @@ body.debug-mode #debug-panel {
 
 /* "Bitte Karte präsentieren"-Dialog: erscheint beim Spin-Versuch ohne aktive
    Karte und verschwindet, sobald eine Karte aufgelegt wird (socket.js). */
-#card-dialog {
+#card-dialog,
+#power-dialog {
   position: absolute;
   top: 0;
   left: 0;
@@ -251,8 +252,18 @@ body.debug-mode #debug-panel {
   transition: opacity 0.25s;
 }
 
-#card-dialog.visible {
+#card-dialog.visible,
+#power-dialog.visible {
   opacity: 1;
+}
+
+/* Power-Menü der Admin-Karte liegt über allem außer dem Ladebildschirm. */
+#power-dialog {
+  z-index: 6;
+}
+
+#power-dialog .card-dialog-box {
+  border-color: #ff5252;
 }
 
 .card-dialog-box {
@@ -267,7 +278,8 @@ body.debug-mode #debug-panel {
   transition: transform 0.25s;
 }
 
-#card-dialog.visible .card-dialog-box {
+#card-dialog.visible .card-dialog-box,
+#power-dialog.visible .card-dialog-box {
   transform: scale(1);
   animation: card-dialog-pulse 1.6s ease-in-out 0.25s infinite;
 }

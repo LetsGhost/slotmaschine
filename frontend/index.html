@@ -63,6 +63,14 @@
         <div class="card-dialog-text">Halte deine Karte an den Leser, um zu spielen.</div>
       </div>
     </div>
+    <!-- Power-Menü der Admin-Karte (backend/power_menu.py, socket.js) -->
+    <div id="power-dialog">
+      <div class="card-dialog-box">
+        <div class="card-dialog-title" id="power-dialog-title"></div>
+        <div class="card-dialog-text" id="power-dialog-text"></div>
+        <div class="card-dialog-text" id="power-dialog-countdown"></div>
+      </div>
+    </div>
     <div id="loading-screen">
       <img id="loading-logo" src="assets/sprites/book_of_rawr_logo.jpg" alt="Book of Rawr" />
       <div id="loading-spinner"></div>
@@ -87,6 +95,8 @@
       <input type="text" id="debug-nfc-uid" placeholder="eigene UID" size="10" />
       <button type="button" id="debug-nfc-scan">Scannen</button>
       <button type="button" id="debug-accounts" title="Alle Konten als Tabelle in die Browser-Konsole">Konten → Konsole</button>
+      <button type="button" data-debug-nfc-uid="MOCKADMIN" title="Power-Menü öffnen (am PC nur dry run)">Admin-Karte</button>
+      <button type="button" id="debug-admin-hold" title="Admin-Karte liegen lassen -> Neustart-Menü">Admin halten</button>
     </fieldset>
     <!-- Event-Buttons werden von main.js (buildDebugPanel) nach Kategorie ergänzt. -->
   </div>

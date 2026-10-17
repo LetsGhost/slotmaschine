@@ -73,3 +73,12 @@ NFC_TOPUP_AMOUNT = 100
 NFC_DEBOUNCE_SEC = 1.5
 NFC_POLL_INTERVAL_SEC = 0.2
 NFC_READ_TIMEOUT_SEC = 0.5
+
+# Admin-Karten: öffnen statt eines Spielerkontos das Power-Menü (power_menu.py).
+# Auflegen = "Herunterfahren?", ADMIN_REBOOT_HOLD_SEC liegen lassen = "Neu
+# starten?", Hebel ziehen bestätigt. UID steht beim Auflegen im Log
+# ("Karte aufgelegt: ..."), Format wie dort, z.B. "04:A1:B2:C3".
+ADMIN_CARD_UIDS: list[str] = []
+ADMIN_REBOOT_HOLD_SEC = 5
+# Menü schließt sich ohne Hebelzug nach dieser Zeit von selbst.
+ADMIN_CONFIRM_TIMEOUT_SEC = 10

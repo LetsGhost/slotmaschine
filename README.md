@@ -63,6 +63,19 @@ Kiosk-Service per `./deploy/update-service.sh`. Manuell:
 `echo 10-005d | sudo tee /sys/bus/i2c/drivers/Goodix-TS/bind`.
 Logs: `journalctl -u slotmachine-touch.service`.
 
+**Herunterfahren/Neustart per Admin-Karte:** Admin-Karte auflegen ->
+"Herunterfahren?", Karte 5 s liegen lassen -> "Neu starten?", Hebel ziehen
+bestätigt, Tippen bricht ab (nach 10 s auch von selbst). Einrichtung:
+1. Karte auflegen und UID aus dem Log lesen (`sudo journalctl -t slotmaschine -f`,
+   Zeile `Karte aufgelegt: ...`).
+2. UID in `backend/config.py` bei `ADMIN_CARD_UIDS` eintragen.
+3. `./deploy/update-service.sh` ausführen - installiert dabei auch die
+   sudoers-Regel `deploy/slotmachine-power.sudoers` (erlaubt dem User `admin`
+   nur `systemctl poweroff`/`reboot` ohne Passwort).
+
+Am PC (NFC-Mock) gibt es dafür im Debug-Panel "Admin-Karte"/"Admin halten",
+dort wird nur geloggt statt heruntergefahren.
+
 Unter Windows (PowerShell) wird die Variable so gesetzt:
 
 ```powershell

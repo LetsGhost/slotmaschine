@@ -9,9 +9,10 @@ from flask_socketio import SocketIO
 import config
 import reels
 from accounts import AccountManager
-from game_state import GameState
+from game_state import GameState, State
 from gpio_handler import GPIOHandler
 from nfc_handler import NFCHandler
+from power_menu import PowerMenu
 
 # Info-Meldungen (z.B. ob GPIO/NFC echt oder im Mock-Modus laufen) landen so
 # auf stderr bzw. im Journal (sudo journalctl -t slotmaschine).
@@ -46,7 +47,21 @@ def emit_credits() -> None:
     )
 
 
+def is_admin_card(uid: str) -> bool:
+    # Im NFC-Mock (PC) zusätzlich die Debug-Karte MOCKADMIN - dort läuft das
+    # Power-Menü ohnehin nur als dry run.
+    return uid in config.ADMIN_CARD_UIDS or (nfc.is_mock and uid == MOCK_ADMIN_UID)
+
+
 def handle_card_scan(uid: str) -> None:
+    logging.getLogger(__name__).info("Karte aufgelegt: %s", uid)
+    if is_admin_card(uid):
+        # Nicht mitten im Spin herunterfahren - Einsatz/Gewinn wären sonst weg.
+        if game.state != State.IDLE:
+            socketio.emit("error", {"message": "Admin-Karte erst nach dem Spin auflegen"})
+            return
+        power_menu.open()
+        return
     event_type, credits = account_manager.handle_card(uid)
     payload = {"uid": uid, "credits": credits}
     if event_type == "topped_up":
@@ -55,9 +70,25 @@ def handle_card_scan(uid: str) -> None:
     emit_credits()
 
 
+def handle_card_hold(uid: str, held_sec: float) -> None:
+    if is_admin_card(uid):
+        power_menu.card_held(held_sec)
+
+
+def handle_lever_pull() -> None:
+    # Offenes Power-Menü: Hebel bestätigt Herunterfahren/Neustart statt zu spinnen.
+    if power_menu.confirm():
+        return
+    game.pull_lever()
+
+
+MOCK_ADMIN_UID = "MOCKADMIN"
+
 game = GameState(account_manager, emit_event)
-gpio = GPIOHandler(config.GPIO_LEVER_PIN, game.pull_lever, config.GPIO_LEVER_ACTIVE_HIGH)
-nfc = NFCHandler(handle_card_scan)
+gpio = GPIOHandler(config.GPIO_LEVER_PIN, handle_lever_pull, config.GPIO_LEVER_ACTIVE_HIGH)
+nfc = NFCHandler(handle_card_scan, handle_card_hold)
+# Ohne echten NFC-Reader (PC) wird nie wirklich heruntergefahren.
+power_menu = PowerMenu(emit_event, dry_run=nfc.is_mock)
 
 
 def _resolve_debug_mode() -> bool:
@@ -179,7 +210,13 @@ def handle_debug_pull_lever():
 @socketio.on("tap_pull_lever")
 def handle_tap_pull_lever():
     if config.TAP_TO_SPIN and DEBUG_MODE:
-        game.pull_lever()
+        handle_lever_pull()
+
+
+# Tipp auf den Bildschirm bei offenem Power-Menü bricht ab (socket.js).
+@socketio.on("power_menu_cancel")
+def handle_power_menu_cancel():
+    power_menu.cancel()
 
 
 @socketio.on("cycle_bet")
@@ -205,6 +242,15 @@ def handle_debug_nfc_scan(data=None):
     uid = str((data or {}).get("uid", "")).strip().upper()
     if DEBUG_MODE and nfc.is_mock and uid:
         nfc.trigger_mock(uid)
+
+
+# Debug: Karte "liegen lassen" simulieren (z.B. MOCKADMIN -> Neustart-Menü).
+@socketio.on("debug_nfc_hold")
+def handle_debug_nfc_hold(data=None):
+    uid = str((data or {}).get("uid", "")).strip().upper()
+    held_sec = float((data or {}).get("held_sec", 0))
+    if DEBUG_MODE and nfc.is_mock and uid:
+        nfc.trigger_mock_hold(uid, held_sec)
 
 
 @socketio.on("debug_accounts")

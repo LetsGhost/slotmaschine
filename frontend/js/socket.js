@@ -145,6 +145,72 @@ socket.on("card_required", () => {
   showCardDialog();
 });
 
+// Power-Menü der Admin-Karte (backend/power_menu.py): Auflegen = Herunterfahren,
+// liegen lassen = Neustart, Hebel bestätigt, Tippen bricht ab.
+const powerDialogEl = document.getElementById("power-dialog");
+const powerTitleEl = document.getElementById("power-dialog-title");
+const powerTextEl = document.getElementById("power-dialog-text");
+const powerCountdownEl = document.getElementById("power-dialog-countdown");
+let powerCountdownTimer = null;
+// Nach dem Bestätigen lässt sich das Menü nicht mehr wegtippen.
+let powerExecuting = false;
+
+function isPowerDialogVisible() {
+  return powerDialogEl?.classList.contains("visible") ?? false;
+}
+
+function showPowerDialog(title, text) {
+  if (!powerDialogEl) return;
+  powerTitleEl.textContent = title;
+  powerTextEl.textContent = text;
+  powerDialogEl.classList.add("visible");
+}
+
+function stopPowerCountdown() {
+  clearInterval(powerCountdownTimer);
+  powerCountdownTimer = null;
+  if (powerCountdownEl) powerCountdownEl.textContent = "";
+}
+
+function startPowerCountdown(seconds) {
+  stopPowerCountdown();
+  const end = Date.now() + seconds * 1000;
+  const tick = () => {
+    const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    powerCountdownEl.textContent = `Abbruch in ${left} s – Tippen bricht sofort ab`;
+  };
+  tick();
+  powerCountdownTimer = setInterval(tick, 250);
+}
+
+socket.on("power_menu", (data) => {
+  if (!data.action) {
+    // Auch nach dry run (PC) bzw. fehlgeschlagenem Befehl.
+    powerExecuting = false;
+    stopPowerCountdown();
+    powerDialogEl?.classList.remove("visible");
+    return;
+  }
+  resetIdleTimer();
+  hideCardDialog();
+  if (data.action === "reboot") {
+    showPowerDialog("Neu starten?", "Hebel ziehen zum Bestätigen");
+  } else {
+    showPowerDialog("Herunterfahren?", `Hebel ziehen zum Bestätigen · Karte ${data.reboot_hold} s liegen lassen = Neustart`);
+  }
+  startPowerCountdown(data.timeout);
+});
+
+socket.on("power_executing", (data) => {
+  powerExecuting = true;
+  stopPowerCountdown();
+  if (data.action === "reboot") {
+    showPowerDialog("Startet neu …", "Gleich wieder da.");
+  } else {
+    showPowerDialog("Fährt herunter …", "Strom erst trennen, wenn die grüne LED am Pi aus ist.");
+  }
+});
+
 // Kurzer Hinweis über dem Walzenfenster (Karten-Events, "Karte auflegen" etc.).
 function showCardToast(text, variant = "info") {
   if (!cardToastEl) return;
@@ -213,6 +279,11 @@ socket.on("error", (data) => {
 });
 
 function pullLever(socketEvent) {
+  // Offenes Power-Menü: Hebel (Leertaste/Tipp im Debug) bestätigt dort - auch ohne Spielerkarte.
+  if (isPowerDialogVisible()) {
+    socket.emit(socketEvent);
+    return;
+  }
   resetIdleTimer();
   // Ohne Karte gar nicht erst beim Server anfragen und keine Hebel-Animation.
   if (!hasActiveCard) {
@@ -239,6 +310,11 @@ document.addEventListener("keydown", (e) => {
 const stageEl = document.getElementById("stage");
 stageEl?.addEventListener("pointerdown", (e) => {
   // Stage ist per CSS-Transform skaliert -> Klickposition auf 800x480 zurückrechnen.
+  // Offenes Power-Menü: Tippen bricht ab (außer es fährt schon herunter).
+  if (isPowerDialogVisible()) {
+    if (!powerExecuting) socket.emit("power_menu_cancel");
+    return;
+  }
   // Offener Karten-Dialog: Tippen schließt ihn nur, statt zu spinnen/Einsatz zu wechseln.
   if (isCardDialogVisible()) {
     hideCardDialog();
@@ -272,6 +348,11 @@ const debugNfcInput = document.getElementById("debug-nfc-uid");
 document.getElementById("debug-nfc-scan")?.addEventListener("click", () => {
   const uid = debugNfcInput.value.trim();
   if (uid) socket.emit("debug_nfc_scan", { uid });
+});
+
+// Debug: Admin-Karte "liegen lassen" -> Power-Menü wechselt auf Neustart.
+document.getElementById("debug-admin-hold")?.addEventListener("click", () => {
+  socket.emit("debug_nfc_hold", { uid: "MOCKADMIN", held_sec: 60 });
 });
 
 document.getElementById("debug-accounts")?.addEventListener("click", () => {
