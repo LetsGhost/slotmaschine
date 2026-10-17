@@ -152,6 +152,21 @@ BROWSER_FLAGS=(
   --log-level=2
 )
 
+# Zusätzliche Chromium-Flags zum Testen, z.B.
+#   sudo systemctl set-environment SLOT_CHROMIUM_FLAGS="--disable-gpu"
+if [ -n "${SLOT_CHROMIUM_FLAGS:-}" ]; then
+  read -r -a extra_flags <<< "$SLOT_CHROMIUM_FLAGS"
+  BROWSER_FLAGS+=("${extra_flags[@]}")
+  echo "Zusätzliche Chromium-Flags: $SLOT_CHROMIUM_FLAGS"
+fi
+
+# Notlauf: Stürzt Chromium wiederholt ab (meist GPU-/Treiberproblem), ohne
+# GPU-Beschleunigung starten - lieber ruckeliger als gar kein Bild.
+if [ "$failed_starts" -ge 2 ]; then
+  echo "Chromium ist ${failed_starts}x abgestürzt - starte ohne GPU (--disable-gpu)." >&2
+  BROWSER_FLAGS+=(--disable-gpu)
+fi
+
 # Nach Stromausfall bleiben Chromiums Profil-Sperrdateien liegen. Bekommt nach
 # dem Booten ein anderer Prozess dieselbe PID, hält Chromium das Profil für
 # belegt und startet nicht richtig. Es läuft hier immer nur ein Chromium.
