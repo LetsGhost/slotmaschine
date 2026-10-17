@@ -44,6 +44,13 @@ SLOT_DEBUG=0 python backend/app.py   # Vollbild-Ansicht wie auf dem Pi testen
 SLOT_DEBUG=1 ./start.sh              # Debug-Panel auch auf dem Pi (start.sh setzt sonst SLOT_DEBUG=0)
 ```
 
+**Neuer Pi / neue SD-Karte:** Pi OS Lite (64-bit) mit User `admin` flashen,
+Repo nach `~/slotmaschine` klonen, `./deploy/setup-pi.sh` ausführen (Pakete,
+I2C, venv, Bootbild, Services, sudoers), `backend/accounts.json` zurückkopieren,
+`sudo reboot`. Den Pi nie per Stecker ausschalten - ein harter Stromausfall hat
+schon einmal Chromium-Dateien auf der SD-Karte zerstört (Exit-Code 139 in
+`journalctl -t slotmaschine`, Prüfen mit `sudo dpkg --verify`).
+
 **Pi OS Lite (ohne Desktop):** `start.sh` startet Chromium über den
 Wayland-Kiosk-Compositor `cage` (`sudo apt install cage chromium-browser`).
 Das Script braucht eine aktive Konsolen-Session auf dem Pi, per SSH oder mit
