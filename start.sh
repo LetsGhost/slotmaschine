@@ -193,13 +193,18 @@ elif command -v cage >/dev/null 2>&1; then
   fi
   wait_for_display
   # Innerhalb von cage erst alle Ausgaben drehen, dann Chromium starten.
-  cage -- bash -c '
+  # SLOT_CAGE_DEBUG=1: ausführliches cage/wlroots-Log zur Fehlersuche
+  CAGE_FLAGS=()
+  [ "${SLOT_CAGE_DEBUG:-0}" = "1" ] && CAGE_FLAGS+=(-d)
+  cage "${CAGE_FLAGS[@]}" -- bash -c '
     rotation="$1"; shift
     if [ "$rotation" != "normal" ] && command -v wlr-randr >/dev/null 2>&1; then
       for output in $(wlr-randr | grep -E "^[^ ]" | cut -d" " -f1); do
         wlr-randr --output "$output" --transform "$rotation"
       done
     fi
+    # Zeigt im Log, ob cage selbst oder erst Chromium abstürzt
+    echo "cage läuft - starte $1 ..."
     exec "$@"
   ' _ "$SLOT_ROTATION" "$BROWSER" "${BROWSER_FLAGS[@]}" --ozone-platform=wayland "$URL" &
   BROWSER_PID=$!
