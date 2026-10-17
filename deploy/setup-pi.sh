@@ -71,13 +71,21 @@ for param in quiet splash loglevel=3 logo.nologo vt.global_cursor_default=0 plym
 done
 # Eigenes Bootbild ins Theme "pix" (rpd-plym-splash) - hochkant, weil das
 # DSI-Display nativ hochkant ist und erst cage dreht (SLOT_ROTATION). Erzeugt aus
-# deploy/splash_1280x720.png: ffmpeg -i splash_1280x720.png -vf transpose=2 splash_720x1280.png
+# deploy/splash_1280x720.png: ffmpeg -i splash_1280x720.png -vf transpose=1 splash_720x1280.png
 PIX=/usr/share/plymouth/themes/pix
 [ -f "$PIX/splash.png.orig" ] || sudo cp "$PIX/splash.png" "$PIX/splash.png.orig"
 sudo cp "$DIR/deploy/splash_720x1280.png" "$PIX/splash.png"
 # Boot-Statusmeldungen unter dem Bild abschalten
 [ -f "$PIX/pix.script.orig" ] || sudo cp "$PIX/pix.script" "$PIX/pix.script.orig"
 sudo sed -i -E 's/^(\s*Plymouth\.Set(UpdateStatus|Message)Function)/# \1/' "$PIX/pix.script"
+# Plymouth wartet standardmäßig nur 8s auf den Grafiktreiber (vc4) und nimmt
+# sonst den vorläufigen Firmware-Framebuffer - dort sitzt das Bild klein und
+# verschoben. Länger warten, damit der Splash gleich auf dem richtigen Display läuft.
+PLY_CONF=/etc/plymouth/plymouthd.conf
+if ! sudo grep -qs '^DeviceTimeout=' "$PLY_CONF"; then
+  sudo grep -qs '^\[Daemon\]' "$PLY_CONF" || echo '[Daemon]' | sudo tee -a "$PLY_CONF" >/dev/null
+  sudo sed -i '/^\[Daemon\]/a DeviceTimeout=30' "$PLY_CONF"
+fi
 # -R baut die initramfs neu, sonst bootet der Pi weiter mit dem alten Bild
 sudo plymouth-set-default-theme -R pix
 
