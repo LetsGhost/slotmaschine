@@ -314,7 +314,9 @@ body.debug-mode #debug-panel {
   left: 20px;
   width: 58px;
   height: 54px;
-  z-index: 4;
+  /* Unter #overlay-layer (z-index 3), damit Animationen den Button überdecken.
+     Der Layer hat pointer-events: none - Tipps kommen trotzdem an. */
+  z-index: 2;
   padding: 8px;
   border: 3px solid var(--gold);
   border-radius: 10px;
