@@ -67,7 +67,15 @@ class AccountFlowTest(TempAccountsMixin, unittest.TestCase):
         with open(self.path, "w") as f:
             f.write('{"A": {"credits": 70}}')
         acc = AccountManager(self.path).accounts["A"]
-        self.assertEqual(acc, {"credits": 70, "peak": 70, "topups": 0, "topup_total": 0})
+        self.assertEqual(acc, {"credits": 70, "name": None, "peak": 70, "topups": 0, "topup_total": 0})
+
+    def test_manual_name_is_kept(self):
+        with open(self.path, "w") as f:
+            f.write('{"A": {"credits": 70, "name": "Paul"}}')
+        accounts = AccountManager(self.path)
+        accounts.handle_card("A")
+        accounts.handle_card("A")
+        self.assertEqual(AccountManager(self.path).leaderboard()[0]["name"], "Paul")
 
     def test_deduct_refuses_overdraft(self):
         self.accounts.handle_card("A")

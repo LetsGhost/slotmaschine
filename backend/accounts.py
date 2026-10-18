@@ -18,6 +18,10 @@ def _with_stats(acc: dict) -> dict:
     # Statistiken fürs Leaderboard: höchstes je erreichtes Guthaben, Anzahl
     # Aufladungen und insgesamt aufgeladene Credits. Ältere accounts.json ohne
     # diese Felder werden beim Laden ergänzt (Höchststand = aktuelles Guthaben).
+    # "name" wird nur von Hand in accounts.json gesetzt (bei gestopptem Server,
+    # sonst überschreibt der nächste Speichervorgang die Änderung) und ersetzt
+    # im Leaderboard die UID; null = UID anzeigen.
+    acc.setdefault("name", None)
     acc.setdefault("peak", acc.get("credits", 0))
     acc.setdefault("topups", 0)
     acc.setdefault("topup_total", 0)
@@ -29,7 +33,7 @@ class AccountManager:
         self.path = path or ACCOUNTS_PATH
         # NFC-Thread (handle_card) und Spin-Timer (add) schreiben parallel.
         self._lock = threading.RLock()
-        # { uid: {"credits": int, "peak": int, "topups": int, "topup_total": int} }
+        # { uid: {"credits": int, "name": str | None, "peak": int, "topups": int, "topup_total": int} }
         self.accounts: dict[str, dict] = self._load()
         self.active_uid: str | None = None
 

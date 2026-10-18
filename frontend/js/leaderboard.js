@@ -56,11 +56,19 @@ function createCard(card, rank, isActive) {
   const rankEl = document.createElement("span");
   rankEl.className = "leaderboard-rank";
   rankEl.textContent = `#${rank}`;
+  // Name kommt optional aus accounts.json (von Hand gesetzt), sonst die UID.
+  const name = card.name?.trim();
   const uidEl = document.createElement("span");
-  uidEl.className = "leaderboard-uid";
-  uidEl.textContent = isActive ? `${shortUid(card.uid)} · aktiv` : shortUid(card.uid);
+  uidEl.className = name ? "leaderboard-name" : "leaderboard-uid";
+  uidEl.textContent = name || shortUid(card.uid);
   uidEl.title = card.uid;
   head.append(rankEl, uidEl);
+  if (isActive) {
+    const activeEl = document.createElement("span");
+    activeEl.className = "leaderboard-active";
+    activeEl.textContent = "aktiv";
+    head.appendChild(activeEl);
+  }
 
   const credits = document.createElement("div");
   credits.className = "leaderboard-credits";
