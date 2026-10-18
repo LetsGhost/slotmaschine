@@ -307,16 +307,16 @@ body.debug-mode #debug-panel {
 
 /* Leaderboard (js/leaderboard.js): Pokal-Button oben links im blauen Rahmen
    (neben dem Titel-Banner, außerhalb von SPIN_TAP_AREA) und darüber eine
-   Vollbild-Seite mit einer Karte pro NFC-Konto. */
+   Vollbild-Seite mit einer Karte pro NFC-Konto. Der Button sitzt in #frame
+   und damit auf dessen Ebene (unter Walzen und Animationen); #frame selbst
+   lässt keine Tipps durch, der Button schon. */
 #leaderboard-button {
   position: absolute;
   top: 18px;
   left: 20px;
   width: 58px;
   height: 54px;
-  /* Unter #overlay-layer (z-index 3), damit Animationen den Button überdecken.
-     Der Layer hat pointer-events: none - Tipps kommen trotzdem an. */
-  z-index: 2;
+  pointer-events: auto;
   padding: 8px;
   border: 3px solid var(--gold);
   border-radius: 10px;

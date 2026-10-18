@@ -53,9 +53,13 @@
         <div class="frame-plate">EINSATZ <span class="frame-plate-value" id="bet-value">0</span></div>
         <div class="frame-plate">GEWINN <span class="frame-plate-value" id="win-value">0</span></div>
       </div>
+
+      <!-- Leaderboard-Button (js/leaderboard.js). Muss Teil von #frame sein:
+           Meme-Animationen (js/meme_anims.js: stageLayers) zoomen/färben den
+           Rahmen als Ganzes - ein Button daneben bliebe sonst stehen. -->
+      <button type="button" id="leaderboard-button" aria-label="Leaderboard"></button>
     </div>
-    <!-- Leaderboard-Button oben rechts + Leaderboard-Seite (js/leaderboard.js) -->
-    <button type="button" id="leaderboard-button" aria-label="Leaderboard"></button>
+    <!-- Leaderboard-Seite (js/leaderboard.js) -->
     <div id="leaderboard-page">
       <div class="leaderboard-header">
         <button type="button" id="leaderboard-close">Zurück</button>
