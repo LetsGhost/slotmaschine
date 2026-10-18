@@ -305,7 +305,8 @@ document.addEventListener("keydown", (e) => {
 // Tippen/Klicken auf die Stage: innerhalb des Walzenfensters (inkl. Goldrahmen,
 // SPIN_TAP_AREA) löst nur im Debug-Modus einen Spin aus (serverseitig zusätzlich
 // über config.TAP_TO_SPIN in backend/config.py), im normalen Betrieb spinnt nur
-// der Hebel und der Tipp dort bewirkt nichts. Überall sonst (blauer Rahmen mit
+// der Hebel und der Tipp dort bewirkt nichts. Oberhalb des Walzenfensters passiert
+// ebenfalls nichts. Überall sonst (blauer Rahmen seitlich und unten mit
 // Guthaben/Einsatz/Gewinn) schaltet zur nächsten Einsatzstufe (config.BET_STEPS).
 const stageEl = document.getElementById("stage");
 stageEl?.addEventListener("pointerdown", (e) => {
@@ -326,6 +327,10 @@ stageEl?.addEventListener("pointerdown", (e) => {
   const a = SPIN_TAP_AREA;
   if (x >= a.left && x < a.left + a.width && y >= a.top && y < a.top + a.height) {
     if (document.body.classList.contains("debug-mode")) pullLever("tap_pull_lever");
+  } else if (y < a.top) {
+    // Oberer blauer Rahmen (Titel + Leaderboard-Button) wechselt keinen Einsatz,
+    // sonst wird ein knapp verfehlter Tipp auf den Button zum Einsatzwechsel.
+    resetIdleTimer();
   } else {
     resetIdleTimer();
     socket.emit("cycle_bet");

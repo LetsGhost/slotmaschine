@@ -116,14 +116,18 @@ function close() {
 
 // pointerdown nicht bis zur Stage durchlassen - dort würde der Tipp sonst den
 // Einsatz wechseln bzw. im Debug-Modus spinnen (socket.js).
-buttonEl.addEventListener("pointerdown", (e) => e.stopPropagation());
+// Öffnen/Schließen direkt auf pointerdown (wie die Stage in socket.js) statt
+// "click" - der kommt auf dem Touchscreen nicht immer zuverlässig an.
+buttonEl.addEventListener("pointerdown", (e) => {
+  e.stopPropagation();
+  open();
+});
 pageEl.addEventListener("pointerdown", (e) => {
   e.stopPropagation();
   resetAutoClose();
 });
 pageEl.addEventListener("scroll", resetAutoClose, { passive: true, capture: true });
-buttonEl.addEventListener("click", open);
-closeEl.addEventListener("click", close);
+closeEl.addEventListener("pointerdown", close);
 
 // Guthaben hat sich geändert (Spin, Aufladen, Kartenwechsel) -> offene Seite aktualisieren.
 socket.on("credits_update", () => {
