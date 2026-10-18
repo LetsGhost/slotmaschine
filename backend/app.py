@@ -177,6 +177,12 @@ def get_state():
     )
 
 
+# Daten für die Leaderboard-Seite (frontend/js/leaderboard.js).
+@app.route("/leaderboard", methods=["GET"])
+def leaderboard():
+    return jsonify({"active_uid": account_manager.active_uid, "cards": account_manager.leaderboard()})
+
+
 @app.route("/debug/accounts", methods=["GET"])
 def debug_accounts():
     if not DEBUG_MODE:

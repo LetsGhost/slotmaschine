@@ -48,6 +48,27 @@ class AccountFlowTest(TempAccountsMixin, unittest.TestCase):
         # Nach Neustart: erstes Auflegen ist Login, nicht Aufladen
         self.assertEqual(reloaded.handle_card("A"), ("logged_in", config.NFC_TOPUP_AMOUNT))
 
+    def test_leaderboard_stats(self):
+        self.accounts.handle_card("A")
+        self.accounts.handle_card("A")
+        self.accounts.handle_card("A")
+        self.accounts.deduct("A", 150)
+        self.accounts.handle_card("B")
+        self.accounts.handle_card("B")
+        top, second = self.accounts.leaderboard()
+        self.assertEqual(top["uid"], "B")
+        self.assertEqual(second["uid"], "A")
+        self.assertEqual(second["credits"], 2 * config.NFC_TOPUP_AMOUNT - 150)
+        self.assertEqual(second["peak"], 2 * config.NFC_TOPUP_AMOUNT)
+        self.assertEqual(second["topups"], 2)
+        self.assertEqual(second["topup_total"], 2 * config.NFC_TOPUP_AMOUNT)
+
+    def test_old_accounts_file_gets_stats(self):
+        with open(self.path, "w") as f:
+            f.write('{"A": {"credits": 70}}')
+        acc = AccountManager(self.path).accounts["A"]
+        self.assertEqual(acc, {"credits": 70, "peak": 70, "topups": 0, "topup_total": 0})
+
     def test_deduct_refuses_overdraft(self):
         self.accounts.handle_card("A")
         self.assertFalse(self.accounts.deduct("A", 1))

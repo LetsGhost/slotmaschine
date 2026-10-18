@@ -4,6 +4,7 @@ import { loadMultiplierConfig } from "./multipliers.js";
 import { preloadSounds, startBackgroundMusic } from "./sound.js";
 import { DISPLAY } from "./config.js";
 import { socket } from "./socket.js";
+import "./leaderboard.js";
 
 // Mindestdauer des Ladescreens (Book-of-Rawr-Logo) beim Seitenaufruf - rein für
 // die Optik, auch wenn alle Assets schneller fertig geladen sind.
