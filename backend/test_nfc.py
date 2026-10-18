@@ -67,7 +67,12 @@ class AccountFlowTest(TempAccountsMixin, unittest.TestCase):
         with open(self.path, "w") as f:
             f.write('{"A": {"credits": 70}}')
         acc = AccountManager(self.path).accounts["A"]
-        self.assertEqual(acc, {"credits": 70, "name": None, "peak": 70, "topups": 0, "topup_total": 0})
+        self.assertEqual(acc, {"credits": 70, "name": None, "admin": False, "peak": 70, "topups": 0, "topup_total": 0})
+
+    def test_admin_hidden_from_leaderboard(self):
+        with open(self.path, "w") as f:
+            f.write('{"A": {"credits": 70, "admin": true}, "B": {"credits": 10}}')
+        self.assertEqual([r["uid"] for r in AccountManager(self.path).leaderboard()], ["B"])
 
     def test_manual_name_is_kept(self):
         with open(self.path, "w") as f:

@@ -305,13 +305,13 @@ body.debug-mode #debug-panel {
   }
 }
 
-/* Leaderboard (js/leaderboard.js): Pokal-Button oben rechts im blauen Rahmen
+/* Leaderboard (js/leaderboard.js): Pokal-Button oben links im blauen Rahmen
    (neben dem Titel-Banner, außerhalb von SPIN_TAP_AREA) und darüber eine
    Vollbild-Seite mit einer Karte pro NFC-Konto. */
 #leaderboard-button {
   position: absolute;
   top: 18px;
-  left: 722px;
+  left: 20px;
   width: 58px;
   height: 54px;
   z-index: 4;
@@ -363,7 +363,7 @@ body.debug-mode #debug-panel {
 .leaderboard-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 20px;
   margin-bottom: 12px;
 }
 

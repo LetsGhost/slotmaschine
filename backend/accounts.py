@@ -22,6 +22,8 @@ def _with_stats(acc: dict) -> dict:
     # sonst überschreibt der nächste Speichervorgang die Änderung) und ersetzt
     # im Leaderboard die UID; null = UID anzeigen.
     acc.setdefault("name", None)
+    # "admin": true (ebenfalls von Hand) blendet das Konto im Leaderboard aus.
+    acc.setdefault("admin", False)
     acc.setdefault("peak", acc.get("credits", 0))
     acc.setdefault("topups", 0)
     acc.setdefault("topup_total", 0)
@@ -33,7 +35,7 @@ class AccountManager:
         self.path = path or ACCOUNTS_PATH
         # NFC-Thread (handle_card) und Spin-Timer (add) schreiben parallel.
         self._lock = threading.RLock()
-        # { uid: {"credits": int, "name": str | None, "peak": int, "topups": int, "topup_total": int} }
+        # { uid: {"credits": int, "name": str | None, "admin": bool, "peak": int, "topups": int, "topup_total": int} }
         self.accounts: dict[str, dict] = self._load()
         self.active_uid: str | None = None
 
@@ -113,9 +115,9 @@ class AccountManager:
             return True
 
     def leaderboard(self) -> list[dict]:
-        """Alle Karten fürs Leaderboard, sortiert nach aktuellem Guthaben (bei
-        Gleichstand nach Höchststand)."""
+        """Alle Karten ohne Admin-Konten fürs Leaderboard, sortiert nach
+        aktuellem Guthaben (bei Gleichstand nach Höchststand)."""
         with self._lock:
-            rows = [{"uid": uid, **acc} for uid, acc in self.accounts.items()]
+            rows = [{"uid": uid, **acc} for uid, acc in self.accounts.items() if not acc.get("admin")]
         rows.sort(key=lambda r: (r["credits"], r["peak"]), reverse=True)
         return rows
