@@ -15,6 +15,11 @@ chmod +x "$DIR/../start.sh"
 # Punkt, sonst ignoriert sudo die Datei.
 sudo visudo -cf "$DIR/slotmachine-power.sudoers"
 sudo install -m 0440 -o root -g root "$DIR/slotmachine-power.sudoers" /etc/sudoers.d/slotmachine-power
+# Touch-Eingabe passend zur Bilddrehung kalibrieren (siehe Kommentar in der
+# Regel). Greift beim Kiosk-Neustart unten, da cage das Gerät neu einliest.
+sudo install -m 0644 "$DIR/99-slotmachine-touch.rules" /etc/udev/rules.d/99-slotmachine-touch.rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=input --action=change
 sudo cp "$DIR/$SERVICE" "$DIR/$TOUCH_SERVICE" /etc/systemd/system/
 sudo systemctl daemon-reload
 # Autostart beim Booten sicherstellen (macht nichts, wenn schon aktiviert)

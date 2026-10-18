@@ -70,6 +70,12 @@ Kiosk-Service per `./deploy/update-service.sh`. Manuell:
 `echo 10-005d | sudo tee /sys/bus/i2c/drivers/Goodix-TS/bind`.
 Logs: `journalctl -u slotmachine-touch.service`.
 
+**Touch-Drehung:** `SLOT_ROTATION` dreht nur das Bild, nicht die
+Touch-Eingabe. `deploy/99-slotmachine-touch.rules` dreht den Touch per
+libinput-Kalibrierung passend zu `90` mit (andere Werte stehen in der Datei)
+und wird von `./deploy/update-service.sh` installiert. Landen Tipps woanders
+als getippt, passt die Matrix nicht zur Drehung.
+
 **Herunterfahren/Neustart per Admin-Karte:** Admin-Karte auflegen ->
 "Herunterfahren?", Karte 5 s liegen lassen -> "Neu starten?", Hebel ziehen
 bestätigt, Tippen bricht ab (nach 10 s auch von selbst). Einrichtung:

@@ -1,0 +1,13 @@
+# Dreht die Touch-Eingabe passend zum Bild. Das DSI-Display ist nativ hochkant,
+# start.sh dreht unter cage aber nur die Bildausgabe (wlr-randr, SLOT_ROTATION) -
+# ohne diese Regel landen Tipps vertauscht (z.B. Tipp oben links -> unten links).
+# libinput liest die Matrix beim Erkennen des Geräts, gilt also ab dem nächsten
+# Kiosk-Start. Installiert von deploy/update-service.sh nach /etc/udev/rules.d/.
+#
+# Matrix passend zu SLOT_ROTATION in start.sh:
+#   90  (Standard): 0 1 0 -1 0 1
+#   270:            0 -1 1 1 0 0
+#   180:            -1 0 1 0 -1 1
+#   normal:         Regel löschen
+# Prüfen auf dem Pi: sudo libinput list-devices | grep -A20 -i touch | grep Calibration
+ACTION=="add|change", SUBSYSTEM=="input", KERNEL=="event[0-9]*", ENV{ID_INPUT_TOUCHSCREEN}=="1", ENV{LIBINPUT_CALIBRATION_MATRIX}="0 1 0 -1 0 1"
